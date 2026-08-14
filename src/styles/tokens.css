@@ -1,0 +1,79 @@
+:root {
+  color-scheme: light;
+  --canvas: #f6f7f9;
+  --surface: #ffffff;
+  --surface-raised: #f1f3f6;
+  --surface-selected: #e7edfb;
+  --text: #171a21;
+  --text-muted: #626a78;
+  --hairline: #dce0e7;
+  --accent: #315ee8;
+  --accent-hover: #244bc5;
+  --breaks: #c43d2f;
+  --breaks-surface: #fff0ed;
+  --degrades: #9a6700;
+  --degrades-surface: #fff7dc;
+  --ok: #1f7a4d;
+  --unverified: #7252b8;
+  --unverified-surface: #f5f0ff;
+  --focus: #315ee8;
+  --shadow: 0 8px 28px rgb(23 26 33 / 0.08);
+
+  --space-1: 6px;
+  --space-2: 10px;
+  --space-3: 14px;
+  --space-5: 28px;
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --text-size: 14px;
+  --text-leading: 1.45;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: #111319;
+  --surface: #181b22;
+  --surface-raised: #20242d;
+  --surface-selected: #1d2740;
+  --text: #f2f4f8;
+  --text-muted: #a8b0bf;
+  --hairline: #303642;
+  --accent: #89a6ff;
+  --accent-hover: #adc0ff;
+  --breaks: #ff9b8e;
+  --breaks-surface: #3a201f;
+  --degrades: #efc66c;
+  --degrades-surface: #352b17;
+  --ok: #6ed49b;
+  --unverified: #cbb7ff;
+  --unverified-surface: #2c2440;
+  --focus: #a9bcff;
+  --shadow: 0 10px 32px rgb(0 0 0 / 0.28);
+}
+
+/* The panel writes data-theme as soon as it mounts. This block only covers the first paint, so a
+   developer in dark mode never sees a white flash before that runs. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --canvas: #111319;
+    --surface: #181b22;
+    --surface-raised: #20242d;
+    --surface-selected: #1d2740;
+    --text: #f2f4f8;
+    --text-muted: #a8b0bf;
+    --hairline: #303642;
+    --accent: #89a6ff;
+    --accent-hover: #adc0ff;
+    --breaks: #ff9b8e;
+    --breaks-surface: #3a201f;
+    --degrades: #efc66c;
+    --degrades-surface: #352b17;
+    --ok: #6ed49b;
+    --unverified: #cbb7ff;
+    --unverified-surface: #2c2440;
+    --focus: #a9bcff;
+    --shadow: 0 10px 32px rgb(0 0 0 / 0.28);
+  }
+}

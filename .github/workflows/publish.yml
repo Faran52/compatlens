@@ -1,0 +1,115 @@
+name: Publish
+
+# Both stores can only update an item that already exists, so the first submission of each is done
+# by hand in its dashboard. Everything after it runs from a tag, and waits for a human first.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # A tag that fails the gates must never reach a store.
+      - run: pnpm check
+      - run: pnpm playwright install --with-deps chromium
+      - run: pnpm e2e
+
+      # The tag is the source of truth for what is being shipped; both manifests have to agree, and
+      # pnpm package already refuses when either disagrees with package.json.
+      - name: Check the tag matches the manifests
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          for manifest in public/manifest.json manifest.firefox.json; do
+            version="$(node -p "require('./$manifest').version")"
+            if [ "$tag" != "$version" ]; then
+              echo "tag $tag does not match $manifest $version" >&2
+              exit 1
+            fi
+          done
+
+      - run: pnpm package
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compatlens-${{ github.ref_name }}
+          path: artifacts/*.zip
+          if-no-files-found: error
+
+  # Gated on the `stores` environment: download the artifacts from this run, load them in both
+  # browsers, and only then approve. Nothing reaches a store before someone has run the build.
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: stores
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: compatlens-${{ github.ref_name }}
+          path: artifacts
+
+      - name: Read the version being shipped
+        id: version
+        run: echo "value=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check which stores are configured
+        id: stores
+        env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          if [ -n "$CHROME_EXTENSION_ID" ] && [ -n "$CHROME_CLIENT_ID" ] \
+            && [ -n "$CHROME_CLIENT_SECRET" ] && [ -n "$CHROME_REFRESH_TOKEN" ]; then
+            echo "chrome=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "chrome=false" >> "$GITHUB_OUTPUT"
+            echo "Chrome secrets are not set; skipped." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -n "$AMO_JWT_ISSUER" ] && [ -n "$AMO_JWT_SECRET" ]; then
+            echo "firefox=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "firefox=false" >> "$GITHUB_OUTPUT"
+            echo "AMO secrets are not set; skipped." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload to the Chrome Web Store
+        if: steps.stores.outputs.chrome == 'true'
+        env:
+          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        run: |
+          npx --yes chrome-webstore-upload-cli@3 upload \
+            --source "artifacts/compatlens-${{ steps.version.outputs.value }}.zip" \
+            --auto-publish
+
+      # web-ext signs a directory, so the firefox archive is unpacked back into one first.
+      - name: Upload to addons.mozilla.org
+        if: steps.stores.outputs.firefox == 'true'
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          unzip -q "artifacts/compatlens-firefox-${{ steps.version.outputs.value }}.zip" \
+            -d dist-firefox
+          npx --yes web-ext@8 sign --source-dir dist-firefox --channel listed \
+            --upload-source-code artifacts/compatlens-firefox-${{ steps.version.outputs.value }}.zip

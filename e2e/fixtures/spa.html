@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Churning SPA - observer spike</title>
+<style>
+  body { font: 13px system-ui; margin: 0; padding: 16px; background: #111319; color: #f2f4f8; }
+  button { font: inherit; padding: 4px 10px; margin-right: 6px; }
+  #log { white-space: pre; font-family: ui-monospace, monospace; font-size: 12px; }
+  .card:has(img) { backdrop-filter: blur(4px); }
+  .skeleton { content-visibility: auto; contain-intrinsic-size: 40px; }
+  .row { anchor-name: --row; }
+</style>
+</head>
+<body>
+<nav>
+  <button data-route="/products">/products</button>
+  <button data-route="/checkout">/checkout</button>
+  <button data-route="/settings">/settings</button>
+</nav>
+<p>route: <b id="route">/products</b></p>
+<div id="app"></div>
+<div id="log"></div>
+
+<script>
+// A deliberately hostile SPA: pushState routing, loading skeletons that swap to real
+// content, and a list that churns continuously the way a live dashboard would.
+const app = document.getElementById('app');
+const routeEl = document.getElementById('route');
+
+const ROUTES = {
+  '/products': () => `<section class="card"><h2>Products</h2>
+    <ul>${Array.from({length: 40}, (_, i) => `<li class="row">Item ${i}</li>`).join('')}</ul></section>`,
+  '/checkout': () => `<section class="card"><h2>Checkout</h2>
+    <dialog open>Confirm</dialog><details name="acc"><summary>Card</summary>x</details></section>`,
+  '/settings': () => `<section class="card"><h2>Settings</h2>
+    <input popovertarget="p"><div id="p" popover>Panel</div></section>`,
+};
+
+const renderSkeleton = () => {
+  app.innerHTML = `<div class="skeleton">${'<p>loading…</p>'.repeat(8)}</div>`;
+};
+
+const navigate = (route) => {
+  history.pushState({}, '', route);
+  routeEl.textContent = route;
+  renderSkeleton();
+  setTimeout(() => { app.innerHTML = ROUTES[route](); }, 250);
+};
+
+document.querySelectorAll('[data-route]').forEach((b) => {
+  b.addEventListener('click', () => navigate(b.dataset.route));
+});
+
+navigate('/products');
+
+// Continuous churn: a live-updating list, the worst realistic case for an observer.
+let churnTimer = null;
+window.__startChurn = (perTick, intervalMs) => {
+  let n = 0;
+  churnTimer = setInterval(() => {
+    const host = app.querySelector('ul') || app;
+    for (let i = 0; i < perTick; i += 1) {
+      const li = document.createElement('li');
+      li.className = 'row';
+      li.textContent = 'live ' + (n += 1);
+      host.appendChild(li);
+      if (host.children.length > 120) host.removeChild(host.firstElementChild);
+    }
+  }, intervalMs);
+};
+window.__stopChurn = () => { clearInterval(churnTimer); churnTimer = null; };
+</script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+/* The panel is a viewport-sized box so its grid scrolls inside itself. Without a height to resolve
+   against, the panel's h-full becomes auto and the whole page scrolls instead. */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-size);
+  line-height: var(--text-leading);
+}
+
+:where(a) {
+  color: var(--accent);
+}
+
+:where(a):hover {
+  color: var(--accent-hover);
+}
+
+:where(:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+code,
+kbd,
+samp {
+  font-family: var(--font-mono);
+}
+
+/* Every transition in the panel is decorative. A developer who asked the OS to stop animations
+   should not have to watch a theme swap fade. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
