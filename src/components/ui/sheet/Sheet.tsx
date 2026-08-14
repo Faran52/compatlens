@@ -1,5 +1,6 @@
-import { cx } from '@utils';
 import { onMount, Show } from 'solid-js';
+
+import { cx } from '@utils';
 
 import {
   closeSheet,

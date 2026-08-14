@@ -1,5 +1,4 @@
-/* The panel is a viewport-sized box so its grid scrolls inside itself. Without a height to resolve
-   against, the panel's h-full becomes auto and the whole page scrolls instead. */
+/* A fixed panel height keeps the grid scrolling inside it instead of scrolling the page. */
 html,
 body,
 #root {
@@ -34,8 +33,7 @@ samp {
   font-family: var(--font-mono);
 }
 
-/* Every transition in the panel is decorative. A developer who asked the OS to stop animations
-   should not have to watch a theme swap fade. */
+/* Respect reduced motion because every panel transition is decorative. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

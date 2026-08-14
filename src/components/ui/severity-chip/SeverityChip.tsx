@@ -1,5 +1,6 @@
-import { RISK_LABELS } from '@engine';
 import { cx } from '@utils';
+
+import { RISK_LABELS } from '@engine';
 
 import type { RiskLevel } from '@engine';
 import type { JSX } from 'solid-js';

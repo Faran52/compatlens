@@ -1,18 +1,21 @@
-import { bcdIdOf, BROWSER_SLOT_IDS } from '@engine';
-import { blockedFindingFixture } from '@mocks';
+import { createSignal } from 'solid-js';
 import {
   fireEvent,
   render,
   screen,
   within,
 } from '@solidjs/testing-library';
-import { createSignal } from 'solid-js';
+
 import {
   describe,
   expect,
   it,
   vi,
 } from 'vitest';
+
+import { blockedFindingFixture } from '@mocks';
+
+import { bcdIdOf, BROWSER_SLOT_IDS } from '@engine';
 
 import { LivePanel } from '../live-panel/LivePanel';
 

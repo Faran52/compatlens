@@ -1,10 +1,11 @@
-import { blockedFindingFixture, degradedFindingFixture } from '@mocks';
 import {
   describe,
   expect,
   it,
   vi,
 } from 'vitest';
+
+import { blockedFindingFixture, degradedFindingFixture } from '@mocks';
 
 import { createLiveSession } from './liveSession';
 

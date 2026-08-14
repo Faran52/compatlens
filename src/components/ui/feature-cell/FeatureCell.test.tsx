@@ -1,10 +1,12 @@
-import { blockedFindingFixture } from '@mocks';
 import { render, screen } from '@solidjs/testing-library';
+
 import {
   describe,
   expect,
   it,
 } from 'vitest';
+
+import { blockedFindingFixture } from '@mocks';
 
 import { FeatureCell } from './FeatureCell';
 

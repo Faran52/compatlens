@@ -1,9 +1,10 @@
-import { bcdIdOf, BROWSER_SLOT_IDS } from '@engine';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
+
+import { bcdIdOf, BROWSER_SLOT_IDS } from '@engine';
 
 import {
   columnsFor,

@@ -15,7 +15,7 @@ const NO_ORIGIN: OriginResolver = {
 
 const ANNOTATION = /\/\*#\s*sourceMappingURL=(\S+?)\s*\*\//gu;
 
-// atob yields one char per byte, and a source path outside ASCII needs those bytes read as UTF-8.
+// atob returns bytes as characters; non-ASCII paths need UTF-8 decoding.
 const decodeBase64 = (value: string): string => {
   const binary = atob(value);
 
@@ -28,14 +28,14 @@ const annotationOf = (css: string): string | undefined => {
   return [...css.matchAll(ANNOTATION)].pop()?.[1];
 };
 
-// A sheet naming a map file the page never fetched keeps its served position, and should say so.
+// A missing map leaves the served position intact and warrants a warning.
 export const namesExternalSourceMap = (css: string): boolean => {
   const annotation = annotationOf(css);
 
   return annotation !== undefined && !annotation.startsWith('data:');
 };
 
-// A dev build of styled-components or emotion writes its map into the style block it injects.
+// CSS-in-JS dev builds embed maps in injected style blocks.
 export const inlineSourceMapOf = (css: string): string | undefined => {
   const annotation = annotationOf(css);
 
@@ -55,7 +55,7 @@ export const inlineSourceMapOf = (css: string): string | undefined => {
   }
 };
 
-// A map that will not parse is the same as no map: the served position is still true.
+// An invalid map leaves the served position intact.
 const traceMapFor = (sourceMap: string, sheetUrl: string): TraceMap | undefined => {
   try {
     return AnyMap(sourceMap, sheetUrl); // not TraceMap, so a sectioned index map resolves too
@@ -65,7 +65,7 @@ const traceMapFor = (sourceMap: string, sheetUrl: string): TraceMap | undefined 
   }
 };
 
-// Checked before the map is handed on, so a map that will not parse is caught where warnings live.
+// Validate here so warnings stay with map loading.
 export const isUsableSourceMap = (sourceMap: string, sheetUrl: string): boolean => {
   return traceMapFor(sourceMap, sheetUrl) !== undefined;
 };

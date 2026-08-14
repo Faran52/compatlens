@@ -5,7 +5,7 @@ export interface PositionedElement {
   path: string;
 }
 
-const collect = ( // nth-of-type survives script inserting a different tag among the siblings.
+const collect = ( // nth-of-type survives inserted siblings of other tags.
   nodes: readonly DefaultTreeAdapterTypes.ChildNode[],
   parentPath: string,
   found: PositionedElement[],
@@ -35,7 +35,7 @@ const collect = ( // nth-of-type survives script inserting a different tag among
   }
 };
 
-// Parsed and walked once for both html detectors, so an element and a <style> block cannot disagree.
+// Walk once so element and style detectors cannot disagree.
 export const walkElements = (html: string): PositionedElement[] => {
   const found: PositionedElement[] = [];
 

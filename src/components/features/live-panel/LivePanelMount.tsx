@@ -1,3 +1,12 @@
+import { createSignal, onCleanup } from 'solid-js';
+import { render } from 'solid-js/web';
+
+import {
+  clampRailWidth,
+  hostOf,
+  toggleIn,
+} from '@utils';
+
 import {
   browserLabels,
   engineRuns,
@@ -6,13 +15,6 @@ import {
 import { resolveTheme } from '@components/ui';
 import { bcdIdOf, DEFAULT_BROWSER_SLOTS } from '@engine';
 import { resolveTargetPreset } from '@model';
-import {
-  clampRailWidth,
-  hostOf,
-  toggleIn,
-} from '@utils';
-import { createSignal, onCleanup } from 'solid-js';
-import { render } from 'solid-js/web';
 
 import { LivePanel } from './LivePanel';
 import { groupForSlot } from './utils/columnUtils';

@@ -1,5 +1,6 @@
-import { cx } from '@utils';
 import { For } from 'solid-js';
+
+import { cx } from '@utils';
 
 import { CELL_CLASSES, CELL_PILL } from '../support-cell/utils/supportCellUtils';
 

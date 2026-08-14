@@ -2,6 +2,10 @@ import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import bcd from '@mdn/browser-compat-data' with { type: 'json' };
+import { getCompatibleVersions } from 'baseline-browser-mapping';
+import { features } from 'web-features';
+
 import {
   AGE_WINDOW_YEARS_RANGE,
   BROWSER_IDS,
@@ -9,9 +13,6 @@ import {
   compareVersions,
   EDGE_LEGACY_SLOT,
 } from '@engine';
-import bcd from '@mdn/browser-compat-data' with { type: 'json' };
-import { getCompatibleVersions } from 'baseline-browser-mapping';
-import { features } from 'web-features';
 
 import packageJson from '../../../../package.json' with { type: 'json' };
 import { curatedDetectors } from '../curatedDetectors';
@@ -33,13 +34,13 @@ import type {
 } from '@engine';
 import type { Identifier, SupportStatement } from '@mdn/browser-compat-data';
 
-const SNAPSHOT_DATE = '2026-07-30'; // pinned, not read from the clock, so `pnpm generate` is byte-reproducible.
+const SNAPSHOT_DATE = '2026-07-30'; // Pinned so generation is byte-reproducible.
 
 const REGISTRY_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'generatedRegistry.ts');
 
 const TARGET_KEYS = [...BROWSER_SLOT_IDS];
 
-const ENTRY_KEYS = [ // a replacer array selects and orders keys at every level, keeping output diff-free.
+const ENTRY_KEYS = [ // A replacer array makes generated key order stable.
   'id',
   'name',
   'kind',
@@ -81,7 +82,7 @@ const readIdentifier = (path: string): Identifier | undefined => {
   return node;
 };
 
-// Leaf nodes often carry no mdn_url, so the nearest documented ancestor is used.
+// Leaf nodes often lack mdn_url, so use the nearest documented ancestor.
 const readMdnUrl = (path: string): string | undefined => {
   const segments = path.split('.');
 
@@ -125,7 +126,7 @@ const readBcd = (path: string): BcdFeature | undefined => {
   return { mdnUrl, support };
 };
 
-// A Map reports a missing id honestly; indexing the record would type it as always present.
+// Map preserves missing IDs; record indexing would not.
 const featuresById = new Map(Object.entries(features));
 
 const readWebFeature = (id: string): WebFeatureStatus | undefined => {
@@ -145,7 +146,7 @@ const readWebFeature = (id: string): WebFeatureStatus | undefined => {
   };
 };
 
-// Baseline is defined over its own browser set; opera, ie and samsunginternet are not in it.
+// Baseline excludes Opera, IE, and Samsung Internet.
 const BASELINE_BROWSERS: readonly BrowserId[] = [
   'chrome',
   'edge',
@@ -177,7 +178,7 @@ const readWidelyAvailableTarget = (): BrowserTarget => {
   return target;
 };
 
-// BCD is the source of truth for which browsers exist; drift must fail loudly, not silently.
+// Fail on BCD browser drift rather than silently dropping a browser.
 const assertBrowsersMatchBcd = (): void => {
   const fromBcd = Object.entries(bcd.browsers)
     .filter(([, browser]) => {
@@ -222,7 +223,7 @@ const cutoffDate = (years: number): string => {
   return date.toISOString().slice(0, 10);
 };
 
-// The floor for "browsers released in the last N years" is the oldest release still inside the window.
+// The floor is the oldest release inside the target window.
 const oldestReleaseSince = (browser: BrowserId, cutoff: string): string | undefined => {
   let oldest: string | undefined;
 
@@ -239,7 +240,7 @@ const oldestReleaseSince = (browser: BrowserId, cutoff: string): string | undefi
   return oldest;
 };
 
-// Edge Legacy is not a BCD browser, it is Edge read at the versions EdgeHTML shipped.
+// Edge Legacy is Edge at versions that shipped EdgeHTML.
 const oldestEdgeLegacySince = (cutoff: string): string | undefined => {
   let oldest: string | undefined;
 
@@ -260,7 +261,7 @@ const oldestEdgeLegacySince = (cutoff: string): string | undefined => {
   return oldest;
 };
 
-// A browser with no release inside the window is left out entirely, which is how IE drops away.
+// Omit browsers with no release in the window, including IE.
 const targetForWindow = (years: AgeWindowYears): BrowserTarget => {
   const cutoff = cutoffDate(years);
   const target: Partial<Record<BrowserSlotId, string>> = {};
@@ -288,13 +289,13 @@ const ageWindowTargets: Readonly<Record<string, BrowserTarget>> = Object.fromEnt
   }),
 );
 
-// BCD's engine union also covers server runtimes; only browser engines reach our types.
+// BCD also lists server engines; only browser engines reach our types.
 const isEngineId = (value: string): value is EngineId => {
   return value === 'Blink' || value === 'Gecko' || value === 'WebKit'
     || value === 'EdgeHTML' || value === 'Trident' || value === 'Presto';
 };
 
-// Which engine each browser shipped from, straight out of BCD, so Edge and Opera switch correctly.
+// BCD engine history preserves Edge and Opera switches.
 const readEngineRuns = (): Readonly<Record<string, readonly EngineRun[]>> => {
   const runs: Record<string, EngineRun[]> = {};
 
@@ -332,7 +333,7 @@ const registry = generateRegistry(curatedDetectors, {
   readWebFeature,
 });
 
-// Every entry carries its own dataVersion, so a second copy beside them would only invite drift.
+// Entries carry dataVersion, so a second copy would drift.
 const contents = `// Generated by src/lib/compat-data/scripts/writeRegistry.ts. Do not edit by hand.
 import type {
   BrowserNames,
@@ -341,7 +342,9 @@ import type {
   FeatureRegistryEntry,
 } from '../engine/index';
 
-export const ageWindowTargets: Readonly<Record<string, BrowserTarget>> = ${JSON.stringify(ageWindowTargets, WINDOW_KEYS, 2)};
+export const ageWindowTargets: Readonly<Record<string, BrowserTarget>> = ${
+  JSON.stringify(ageWindowTargets, WINDOW_KEYS, 2)
+};
 
 export const widelyAvailableTarget: BrowserTarget = ${JSON.stringify(readWidelyAvailableTarget(), TARGET_KEYS, 2)};
 

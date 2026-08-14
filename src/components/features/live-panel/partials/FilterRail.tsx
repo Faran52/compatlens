@@ -1,7 +1,9 @@
+import { For } from 'solid-js';
+
+import { cx } from '@utils';
+
 import { CheckList } from '@components/ui';
 import { ENGINE_GROUP_ORDER } from '@engine';
-import { cx } from '@utils';
-import { For } from 'solid-js';
 
 import { bulkToggleLabelFor, slotCheckRowsFor } from '../utils/railUtils';
 
@@ -28,7 +30,9 @@ export const FilterRail = (props: FilterRailProps): JSX.Element => {
             'ml-auto cursor-pointer rounded-md border border-hairline px-1.5 py-0.5',
             'text-[11px] text-text-muted hover:border-accent hover:text-accent',
           )}
-          onClick={props.onToggleAll}
+          onClick={() => {
+            props.onToggleAll();
+          }}
           type="button"
         >
           {bulkToggleLabelFor(props.allChecked)}

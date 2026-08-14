@@ -1,15 +1,17 @@
-import { blockedFindingFixture } from '@mocks';
 import {
   fireEvent,
   render,
   screen,
 } from '@solidjs/testing-library';
+
 import {
   describe,
   expect,
   it,
   vi,
 } from 'vitest';
+
+import { blockedFindingFixture } from '@mocks';
 
 import { FindingDrawer } from './FindingDrawer';
 

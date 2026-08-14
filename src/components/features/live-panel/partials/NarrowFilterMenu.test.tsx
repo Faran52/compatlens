@@ -1,10 +1,11 @@
+import { createSignal } from 'solid-js';
 import {
   fireEvent,
   render,
   screen,
   within,
 } from '@solidjs/testing-library';
-import { createSignal } from 'solid-js';
+
 import {
   describe,
   expect,

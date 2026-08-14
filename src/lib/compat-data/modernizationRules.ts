@@ -1,6 +1,6 @@
 import type { ModernizationRule } from '@engine';
 
-// Each replacementId must name a curated detector, which is what makes the suggestion target-aware.
+// Replacements use curated detectors so suggestions remain target-aware.
 export const modernizationRules: readonly ModernizationRule[] = [
   {
     id: 'legacy-webkit-appearance',

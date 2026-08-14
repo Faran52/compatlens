@@ -1,10 +1,11 @@
-import { BROWSER_SLOT_IDS } from '@engine';
 import {
   describe,
   expect,
   it,
   vi,
 } from 'vitest';
+
+import { BROWSER_SLOT_IDS } from '@engine';
 
 import {
   activeSlotsFor,

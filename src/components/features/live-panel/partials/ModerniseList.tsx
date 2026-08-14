@@ -1,5 +1,6 @@
-import { locationLabelFor } from '@engine';
 import { For, Show } from 'solid-js';
+
+import { locationLabelFor } from '@engine';
 
 import type { Suggestion } from '@engine';
 import type { JSX } from 'solid-js';

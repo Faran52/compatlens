@@ -80,11 +80,12 @@ where none can. There are no cast exceptions and no `@ts-expect-error` exception
 
 ### Comments
 
-- One line, never more. No block comments, no JSDoc, no paragraph above a
-  declaration. If it takes a paragraph, the code needs a better name.
-- Put it inline at the end of the line it explains where it fits inside the 120
-  column limit, and on the line directly above where it does not. Never split
-  one comment across two lines to dodge that.
+- One or two lines: inline. Put it at the end of the line it explains where it
+  fits inside the 120 column limit, and on the line directly above where it
+  does not.
+- Three lines or more: a JSDoc block directly above the declaration it
+  documents, not a run of `//` lines. If it still takes a paragraph once
+  written as JSDoc, check whether the code needs a better name instead.
 - A comment explains why: the constraint, measurement, or bug behind the code.
   Delete comments that merely restate it, and comments a good name replaces.
   A comment that only labels a section is one to delete.

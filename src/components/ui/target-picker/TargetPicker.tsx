@@ -1,5 +1,6 @@
-import { isAgeWindow, isTargetPreset } from '@model';
 import { For, Show } from 'solid-js';
+
+import { isAgeWindow, isTargetPreset } from '@model';
 
 import { yearsAfterStep } from './utils/targetPickerUtils';
 

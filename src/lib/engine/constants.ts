@@ -9,7 +9,7 @@ import type {
 
 export const EDGE_LEGACY_SLOT = 'edge_legacy';
 
-// Fixed order so impacts, support maps and exports stay comparable between runs.
+// Fixed order keeps reports comparable between runs.
 export const BROWSER_IDS: readonly BrowserId[] = [
   'chrome',
   'edge',
@@ -26,7 +26,7 @@ export const BROWSER_IDS: readonly BrowserId[] = [
   'webview_ios',
 ];
 
-// Grouped by engine family so collapsed columns sit next to the browsers they aggregate.
+// Group by engine so collapsed columns stay beside their browsers.
 export const BROWSER_SLOT_IDS: readonly BrowserSlotId[] = [
   'chrome',
   'edge',
@@ -76,7 +76,7 @@ export const RISK_ORDER: Readonly<Record<RiskLevel, number>> = {
   degrades: 1,
 };
 
-// One wording for the chip, the grid section and the export, so a rename cannot reach only two.
+// Share wording so a rename cannot miss a surface.
 export const RISK_LABELS: Readonly<Record<RiskLevel, string>> = {
   breaks: 'Breaks',
   degrades: 'Degrades',

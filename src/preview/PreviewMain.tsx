@@ -1,3 +1,6 @@
+import { createSignal } from 'solid-js';
+import { render } from 'solid-js/web';
+
 import {
   browserLabels,
   engineRuns,
@@ -12,8 +15,6 @@ import {
   BROWSER_SLOT_IDS,
 } from '@engine';
 import { emptySession, mergeBatch } from '@model';
-import { createSignal } from 'solid-js';
-import { render } from 'solid-js/web';
 
 import fixtureCss from '../../e2e/fixtures/compat-page.css?raw';
 import fixtureHtml from '../../e2e/fixtures/compat-page.html?raw';
@@ -27,7 +28,7 @@ import '../styles/global.css';
 
 const ROUTE = 'https://shop.example.test/products';
 
-// Preview-only, so no production bundle carries the fixture, and the verdicts are the real engine's.
+// Keep fixtures out of production while exercising the real engine.
 const batch = mergeBatch(
   emptySession(),
   analyzeResources({
@@ -46,7 +47,7 @@ const batch = mergeBatch(
   { route: ROUTE, at: '2026-07-31T10:00:00.000Z' },
 );
 
-// A live panel has the observer installed by the time it has findings to show.
+// A live panel installs its observer before it receives findings.
 const session = { ...batch, watching: true };
 
 const container = document.getElementById('root');

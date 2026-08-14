@@ -1,9 +1,10 @@
-import { reportFixture } from '@mocks';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
+
+import { reportFixture } from '@mocks';
 
 import {
   ANALYSIS_PROTOCOL,

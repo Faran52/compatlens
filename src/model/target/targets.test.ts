@@ -1,9 +1,10 @@
-import { ageWindowTargets, widelyAvailableTarget } from '@compat-data';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
+
+import { ageWindowTargets, widelyAvailableTarget } from '@compat-data';
 
 import {
   isAgeWindow,

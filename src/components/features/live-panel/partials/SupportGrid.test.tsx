@@ -1,16 +1,19 @@
-import { bcdIdOf, BROWSER_SLOT_IDS } from '@engine';
-import { blockedFindingFixture } from '@mocks';
 import {
   fireEvent,
   render,
   screen,
 } from '@solidjs/testing-library';
+
 import {
   describe,
   expect,
   it,
   vi,
 } from 'vitest';
+
+import { blockedFindingFixture } from '@mocks';
+
+import { bcdIdOf, BROWSER_SLOT_IDS } from '@engine';
 
 import { SupportGrid } from './SupportGrid';
 

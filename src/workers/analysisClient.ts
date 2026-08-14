@@ -14,7 +14,7 @@ interface Pending {
   reject: (error: Error) => void;
 }
 
-// The engine keeps its plain signature; only this seam knows a worker exists.
+// Keep the engine worker-free for direct use and tests.
 export const createAnalysisClient = (worker: WorkerLike): AnalysisClient => {
   const pending = new Map<number, Pending>();
   let nextId = 0;

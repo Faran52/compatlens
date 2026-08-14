@@ -33,13 +33,13 @@ interface AnalysisFailure {
 
 export type AnalysisResponse = AnalysisSuccess | AnalysisFailure;
 
-// Narrow view of a Worker so the client can be driven by a plain object in tests.
+// Keep the client testable without a browser Worker.
 export interface WorkerLike {
   postMessage(message: AnalysisRequest): void;
   addEventListener(type: 'message', listener: (event: { data: unknown }) => void): void;
 }
 
-// Versioned so a stale worker left over from a reload is ignored rather than misread.
+// Ignore workers left over from an extension reload.
 export const ANALYSIS_PROTOCOL = 1;
 
 export const isAnalysisResponse = (value: unknown): value is AnalysisResponse => {

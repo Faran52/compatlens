@@ -1,11 +1,13 @@
-import { blockedFindingFixture } from '@mocks';
 import { screen } from '@solidjs/testing-library';
+
 import {
   describe,
   expect,
   it,
   vi,
 } from 'vitest';
+
+import { blockedFindingFixture } from '@mocks';
 
 import { mountLivePanel } from './LivePanelMount';
 

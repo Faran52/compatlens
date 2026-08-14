@@ -1,5 +1,4 @@
-/* source(none): class names live only in components, so a catalog or fixture string that merely
-   looks like one is never emitted. Auto-detection scans the whole repo, including e2e fixtures. */
+/* Restrict class scanning so catalog and fixture strings never emit styles. */
 @import "tailwindcss" source(none);
 @source "../components";
 @source not "../components/**/*.test.{ts,tsx}";
@@ -60,8 +59,7 @@
   }
 }
 
-/* The detail sheet rises over the grid rather than pushing it, so the panel never grows a scrollbar
-   of its own. */
+/* Overlay the grid so the panel never gains its own scrollbar. */
 @keyframes sheet {
   from {
     opacity: 0;
@@ -74,8 +72,7 @@
   }
 }
 
-/* Opacity only: a transform on a sticky header makes it its own containing block and it stops
-   sticking. */
+/* Avoid transforms: they break this sticky header's containing block. */
 @keyframes reveal {
   from {
     opacity: 0;

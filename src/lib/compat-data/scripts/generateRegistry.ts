@@ -36,7 +36,7 @@ export interface RegistrySources {
   readWebFeature: (id: string) => WebFeatureStatus | undefined;
 }
 
-// BCD also uses "preview", "≤37" and booleans; none of those is a comparable floor.
+// BCD also uses non-version values, which cannot be support floors.
 const RELEASE_VERSION = /^\d+(?:\.\d+)*$/;
 
 const resolveBaseline = (baseline: WebFeatureStatus['baseline']): BaselineStatus => {
@@ -51,7 +51,7 @@ const resolveBaseline = (baseline: WebFeatureStatus['baseline']): BaselineStatus
   return 'limited';
 };
 
-const resolveSupportedFrom = ( // prefixed, flagged, partial and removed support is reported as unknown, not as support.
+const resolveSupportedFrom = ( // Prefixed, flagged, partial, and removed support is not confirmed support.
   statements: readonly BrowserSupportStatement[] | undefined,
 ): string | undefined => {
   const statement = statements?.[0];

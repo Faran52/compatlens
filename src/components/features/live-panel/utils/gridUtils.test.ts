@@ -1,9 +1,10 @@
-import { blockedFindingFixture } from '@mocks';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
+
+import { blockedFindingFixture } from '@mocks';
 
 import {
   countBySeverity,

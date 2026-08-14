@@ -1,10 +1,11 @@
+import { For, Show } from 'solid-js';
+
 import {
   SeverityChip,
   Sheet,
   supportCellFor,
 } from '@components/ui';
 import { locationLabelFor } from '@engine';
-import { For, Show } from 'solid-js';
 
 import type { BrowserSlotId, Occurrence } from '@engine';
 import type { JSX } from 'solid-js';

@@ -1,5 +1,6 @@
-import { cx } from '@utils';
 import { Index, Show } from 'solid-js';
+
+import { cx } from '@utils';
 
 import type { JSX } from 'solid-js';
 

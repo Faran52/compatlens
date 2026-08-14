@@ -1,5 +1,6 @@
-import { render, screen } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
+import { render, screen } from '@solidjs/testing-library';
+
 import {
   describe,
   expect,

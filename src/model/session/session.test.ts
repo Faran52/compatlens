@@ -1,9 +1,10 @@
-import { blockedFindingFixture, degradedFindingFixture } from '@mocks';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
+
+import { blockedFindingFixture, degradedFindingFixture } from '@mocks';
 
 import { emptySession, mergeBatch } from './session';
 

@@ -1,6 +1,5 @@
 import type { DetectorDefinition } from '@engine';
 
-// syntax per kind: tag, "element[attribute]", at-rule name, selector, property or value token.
 export const curatedDetectors: readonly DetectorDefinition[] = [
   {
     id: 'html-dialog',
@@ -80,7 +79,7 @@ export const curatedDetectors: readonly DetectorDefinition[] = [
       + 'toggles the target.',
   },
   {
-    // Rarely fires: the parser consumes the template, and a shadow tree comes back as plain markup.
+    // The parser consumes templates; a shadow tree returns as plain markup.
     id: 'html-declarative-shadow-dom',
     name: 'declarative shadow DOM',
     kind: 'html-attribute',

@@ -1,9 +1,10 @@
-import { chromeFixture } from '@mocks';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
+
+import { chromeFixture } from '@mocks';
 
 import {
   captureLive,

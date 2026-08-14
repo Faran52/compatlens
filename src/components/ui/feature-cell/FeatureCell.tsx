@@ -1,5 +1,6 @@
-import { locationLabelFor, servedLabelFor } from '@engine';
 import { cx } from '@utils';
+
+import { locationLabelFor, servedLabelFor } from '@engine';
 
 import { SeverityChip } from '../severity-chip/SeverityChip';
 

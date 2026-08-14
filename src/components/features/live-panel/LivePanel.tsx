@@ -1,15 +1,17 @@
+import { For, Show } from 'solid-js';
+
+import {
+  createRailResize,
+  cx,
+  hostOf,
+} from '@utils';
+
 import {
   CellLegend,
   Tabs,
   TargetPicker,
   ThemeMenu,
 } from '@components/ui';
-import {
-  createRailResize,
-  cx,
-  hostOf,
-} from '@utils';
-import { For, Show } from 'solid-js';
 
 import { FilterBody } from './partials/FilterBody';
 import { FindingDrawer } from './partials/FindingDrawer';
@@ -152,7 +154,9 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
             'hover:border-accent focus-visible:border-accent',
           )}
           disabled={isConnecting(props.session)}
-          onClick={props.onExport}
+          onClick={() => {
+            props.onExport();
+          }}
           type="button"
         >
           Export .md

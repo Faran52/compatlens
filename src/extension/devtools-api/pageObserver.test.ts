@@ -1,10 +1,11 @@
-import { chromeFixture } from '@mocks';
 import {
   describe,
   expect,
   it,
   vi,
 } from 'vitest';
+
+import { chromeFixture } from '@mocks';
 
 import {
   OBSERVER_ABANDONED_MS,

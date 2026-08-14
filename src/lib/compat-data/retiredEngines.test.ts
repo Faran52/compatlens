@@ -1,9 +1,10 @@
-import { ENGINE_GROUPS } from '@engine';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
+
+import { ENGINE_GROUPS } from '@engine';
 
 import { retiredEngines } from './retiredEngines';
 

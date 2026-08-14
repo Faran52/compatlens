@@ -39,12 +39,12 @@ export const startObserving = async (api: ChromeDevToolsFacade): Promise<void> =
   await installPageObserver(api);
 };
 
-// The observer is already installed, so only the queue needs the whole document putting back.
+// The observer is installed, so only its queue needs the document restored.
 export const restartObserving = async (api: ChromeDevToolsFacade): Promise<void> => {
   await reseedPageObserver(api);
 };
 
-// A map that will not parse is worth no more than one that would not fetch, so it is dropped here.
+// An unreadable map is no better than an unfetched one.
 const usableSourceMap = (sourceMap: string | undefined, url: string): string | undefined => {
   if (sourceMap === undefined || sourceMap === '') {
     return undefined;
@@ -53,7 +53,7 @@ const usableSourceMap = (sourceMap: string | undefined, url: string): string | u
   return isUsableSourceMap(sourceMap, url) ? sourceMap : undefined;
 };
 
-// A page-fetch that failed outright never saw the annotation, so the content is what knows.
+// Only the fetched content knows whether a failed request saw a map annotation.
 const namedAMap = (content: string, sourceMap: string | undefined): boolean => {
   return sourceMap !== undefined || namesExternalSourceMap(content);
 };
@@ -86,7 +86,7 @@ const tallyStylesheets = (
   return { sheets, unreadable, unreadableMaps };
 };
 
-// Stylesheets do not mutate the way markup does, so they are read once per capture, not observed.
+// Stylesheets are read once per capture because they are not observed like markup.
 const readStylesheets = async (
   api: ChromeDevToolsFacade,
   fetched: readonly ObservedStylesheet[],
@@ -106,19 +106,19 @@ const readStylesheets = async (
     }
   }
 
-  // Candidates are unique by url, so reading them at once cannot race and saves a round trip each.
+  // Unique URLs can be read concurrently without racing.
   await Promise.all(stylesheetCandidates(inspected, har.entries).map(async (candidate) => {
     const fallback = bodies.get(candidate.url) ?? '';
     const content = await readContent(candidate);
 
-    // DevTools can read a cross-origin body the page itself cannot, so its copy wins where it has one.
+    // DevTools can read cross-origin bodies the page cannot.
     bodies.set(candidate.url, content === '' ? fallback : content);
   }));
 
   const tally = tallyStylesheets(bodies, maps);
   const warnings: string[] = [];
 
-  // Silence would look the same as a clean page, and a page can legitimately have no stylesheet.
+  // Silence looks clean, while no stylesheets can be legitimate.
   if (tally.unreadable > 0) {
     warnings.push(UNREADABLE_STYLESHEET_WARNING);
   }
@@ -135,7 +135,7 @@ export const captureLive = async (api: ChromeDevToolsFacade): Promise<LiveCaptur
   const markup = batch.fragments.map((content) => {
     return { kind: 'html', url: batch.route, content, view: 'rendered' } satisfies ResourceInput;
   });
-  // A page-fetched sheet lands drains after the markup did, so an idle drain still has work to do.
+  // Page-fetched sheets can arrive after markup, so idle drains still have work.
   const idle = markup.length === 0 && batch.stylesheets.length === 0;
   const css = idle ? { sheets: [], warnings: [] } : await readStylesheets(api, batch.stylesheets);
   const dropped = batch.dropped === 0

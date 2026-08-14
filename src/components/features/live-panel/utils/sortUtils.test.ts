@@ -1,10 +1,12 @@
-import { SORT_BY_LEAD } from '@components/ui';
-import { blockedFindingFixture, degradedFindingFixture } from '@mocks';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
+
+import { blockedFindingFixture, degradedFindingFixture } from '@mocks';
+
+import { SORT_BY_LEAD } from '@components/ui';
 
 import { compareOccurrences, sortKeyFor } from './sortUtils';
 

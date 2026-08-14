@@ -1,9 +1,10 @@
-import { cx } from '@utils';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
+
+import { cx } from '@utils';
 
 describe('cx', () => {
   it('joins the classes it is given', () => {

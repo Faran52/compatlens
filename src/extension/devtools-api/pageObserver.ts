@@ -20,7 +20,7 @@ interface ObservedBatch {
   stylesheets: readonly ObservedStylesheet[];
 }
 
-// Some browsers hand DevTools no stylesheet body at all, so the page fetches its own from cache.
+// Some DevTools omit stylesheet bodies, so fetch the page copy.
 const COLLECT_STYLESHEETS = `let sheetIndex = 0;
 
   for (const sheet of document.styleSheets) {
@@ -32,7 +32,7 @@ const COLLECT_STYLESHEETS = `let sheetIndex = 0;
       const owner = sheet.ownerNode;
       let inserted = 0;
 
-      // A production CSS-in-JS build inserts its rules, leaving the element empty and markup blind.
+      // CSS-in-JS can insert rules while leaving the element empty.
       try { inserted = sheet.cssRules.length; } catch { inserted = 0; }
 
       if (inserted > 0 && owner && owner.textContent.trim() === '') {
@@ -46,10 +46,10 @@ const COLLECT_STYLESHEETS = `let sheetIndex = 0;
       continue;
     }
 
-    // A body this fetch cannot reach, such as a cross-origin sheet, never becomes reachable later.
+      // Cross-origin bodies this fetch cannot reach will not become reachable later.
     state.attempted.add(href);
 
-    // fetch only rejects on a network error, and a 404 body is an error page rather than a file.
+      // fetch resolves 404s, whose bodies are not stylesheets.
     const readBody = (response) => {
       return response.ok ? response.text() : Promise.reject(new Error('not ok'));
     };
@@ -64,7 +64,7 @@ const COLLECT_STYLESHEETS = `let sheetIndex = 0;
       let mapUrl = '';
       let named = false;
 
-      // An inline map already travels inside the text, so only a separate file needs fetching.
+      // Inline maps already travel with the stylesheet text.
       if (declared !== '' && declared.slice(0, 5) !== 'data:') {
         named = true;
 
@@ -77,22 +77,21 @@ const COLLECT_STYLESHEETS = `let sheetIndex = 0;
         return undefined;
       }
 
-      // The sheet waits for its map, because a drain hands each sheet over exactly once.
+      // A sheet waits for its map because each drain hands it over once.
       return fetch(mapUrl).then(readBody).then((map) => {
         state.sheets.set(href, { text: text, map: map });
       }).catch(() => {
         state.sheets.set(href, { text: text, map: '' });
       });
-    // An empty body is what the panel counts as unreadable, so a refusal must not stay silent.
+      // The panel counts an empty body as unreadable, so preserve the refusal.
     }).catch(() => { state.sheets.set(href, { text: '', map: undefined }); });
   }`;
 
-// Installed once per document. eval is request/response, so the page stashes and the panel drains.
+// eval is request/response, so the page stashes and the panel drains.
 export const OBSERVER_INSTALL_EXPRESSION = `(() => {
   const existing = window['${OBSERVER_KEY}'];
 
-  // A stash an older build left has the wrong shape; replacing it strands that observer, which
-  // then disconnects itself on its next record because nothing is draining it any more.
+  // Leave an older stash intact so its observer can disconnect on the next record.
   if (existing && existing.version === ${String(OBSERVER_STATE_VERSION)}) {
     return true;
   }
@@ -107,7 +106,7 @@ export const OBSERVER_INSTALL_EXPRESSION = `(() => {
   };
 
   const observer = new MutationObserver((records) => {
-    // Closing DevTools runs no teardown in the page, so a panel that stopped draining is the signal.
+    // Closing DevTools runs no page teardown, so stalled draining is the signal.
     if (Date.now() - state.drainedAt > ${String(OBSERVER_ABANDONED_MS)}) {
       observer.disconnect();
       delete window['${OBSERVER_KEY}'];
@@ -133,7 +132,7 @@ export const OBSERVER_INSTALL_EXPRESSION = `(() => {
 
   observer.observe(document.documentElement, { childList: true, subtree: true });
 
-  // Whatever already rendered is the first batch: an observer alone only ever reports what is new.
+  // An observer only reports new nodes, so include what has already rendered.
   state.pending.add(document.documentElement);
   window['${OBSERVER_KEY}'] = state;
 
@@ -142,7 +141,7 @@ export const OBSERVER_INSTALL_EXPRESSION = `(() => {
   return true;
 })()`;
 
-// Changing the target re-judges the whole page, and an observer only ever reports what is new.
+// A target change re-judges the whole page; observers only report new nodes.
 export const OBSERVER_RESEED_EXPRESSION = `(() => {
   const state = window['${OBSERVER_KEY}'];
 
@@ -152,7 +151,7 @@ export const OBSERVER_RESEED_EXPRESSION = `(() => {
 
   state.pending.add(document.documentElement);
 
-  // Re-judging the page means the stylesheets have to come back too, and only this forgets them.
+  // A new target needs stylesheets re-judged too, so only this clears them.
   state.attempted.clear();
 
   return true;
@@ -167,7 +166,7 @@ export const OBSERVER_DRAIN_EXPRESSION = `(() => {
 
   ${COLLECT_STYLESHEETS}
 
-  // Draining the map hands each fetched sheet over once, however many drains it survives.
+  // Draining hands each fetched sheet over once.
   const stylesheets = [...state.sheets].map(([url, sheet]) => ({
     url,
     text: sheet.text,
@@ -176,11 +175,11 @@ export const OBSERVER_DRAIN_EXPRESSION = `(() => {
 
   state.sheets.clear();
 
-  // outerHTML omits shadow trees, so a component built with attachShadow would scan as empty.
+  // outerHTML omits shadow trees, so scan them separately.
   const shadowRootsIn = (node) => {
     const roots = [];
 
-    // The added node is often the host itself, so it has to be asked before its descendants are.
+    // An added node can be the host itself, so inspect it before descendants.
     if (node.shadowRoot) {
       roots.push(node.shadowRoot);
       roots.push(...shadowRootsIn(node.shadowRoot));
@@ -202,7 +201,7 @@ export const OBSERVER_DRAIN_EXPRESSION = `(() => {
     if (node.isConnected) {
       fragments.push(node.outerHTML);
 
-      // A shadow root cannot be serialised inside its host, so it arrives as a fragment of its own.
+      // Shadow roots cannot serialize inside their hosts, so send separate fragments.
       for (const root of shadowRootsIn(node)) {
         fragments.push(root.innerHTML);
       }
@@ -227,7 +226,7 @@ const isObservedStylesheet = (value: unknown): value is ObservedStylesheet => {
     return false;
   }
 
-  // eval drops an undefined property on the way back, but an in-process caller still carries it.
+  // eval drops undefined properties; in-process callers do not.
   if ('map' in value && value.map !== undefined && typeof value.map !== 'string') {
     return false;
   }

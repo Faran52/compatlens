@@ -1,6 +1,6 @@
 import type { BrowserTarget } from '@engine';
 
-// Fixed, not derived: a historic cutoff must resolve the same way in any future report.
+// A historic cutoff must resolve identically in future reports.
 export const BASELINE_2022_TARGET: BrowserTarget = {
   chrome: '108',
   firefox: '108',

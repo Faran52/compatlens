@@ -9,7 +9,7 @@ import type {
   ResourceKind,
 } from '../types';
 
-// Segment-wise: parseFloat would make 15.4 equal 15.40 and order 15.10 below 15.4.
+// Compare segments: parseFloat misorders 15.10 and 15.4.
 export const compareVersions = (left: string, right: string): number => {
   const leftParts = left.split('.').map(Number);
   const rightParts = right.split('.').map(Number);
@@ -34,7 +34,7 @@ const sourceKindOf = (entry: FeatureRegistryEntry): ResourceKind => {
   return 'css';
 };
 
-// Every targeted slot is reported, passing or failing, so the panel can show a pass as a pass.
+// Report passing slots so the panel can show passes.
 const impactsFor = (entry: FeatureRegistryEntry, target: BrowserTarget): BrowserImpact[] => {
   const impacts: BrowserImpact[] = [];
 
@@ -48,7 +48,7 @@ const impactsFor = (entry: FeatureRegistryEntry, target: BrowserTarget): Browser
 
     const supportedFrom = entry.support[bcdIdOf(slot)];
 
-    // No usable version means prefixed, flagged or absent support, which cannot count as support.
+    // Prefixed, flagged, or absent support is not confirmed support.
     if (supportedFrom === undefined) {
       impacts.push({ slot, targetVersion, supported: false });
       continue;
@@ -88,7 +88,7 @@ export const resolveSupport = (
     kind: entry.kind,
     sourceKind: sourceKindOf(entry),
     syntax: entry.syntax,
-    risk: entry.defaultRisk, // severity is the catalog's call and is never overwritten by data gaps
+    risk: entry.defaultRisk, // Data gaps never override catalog severity.
     verified: failing.every((impact) => {
       return impact.supportedFrom !== undefined;
     }),

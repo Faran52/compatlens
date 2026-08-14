@@ -8,8 +8,7 @@ import type {
   Suggestion,
 } from '../types';
 
-// Only worth suggesting when the replacement is already safe for every browser being targeted,
-// which resolveSupport reports by finding nothing to complain about.
+// Suggest only replacements already safe for every target.
 export const resolveModernization = (
   detection: DetectedFeature,
   rule: ModernizationRule,

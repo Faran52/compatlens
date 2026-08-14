@@ -4,7 +4,7 @@ import { ANALYSIS_PROTOCOL, isAnalysisRequest } from './analysisContract';
 
 import type { AnalysisResponse } from './analysisContract';
 
-// Bootstrap: the worker owns no logic, it only moves parse work off the panel thread.
+// Keep parsing off the panel thread without putting worker logic in the engine.
 const reply = (message: AnalysisResponse): void => {
   postMessage(message);
 };

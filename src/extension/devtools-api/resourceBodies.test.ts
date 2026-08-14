@@ -1,9 +1,10 @@
-import { base64Body, harEntry } from '@mocks';
 import {
   describe,
   expect,
   it,
 } from 'vitest';
+
+import { base64Body, harEntry } from '@mocks';
 
 import {
   readContent,

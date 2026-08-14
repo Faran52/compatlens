@@ -1,11 +1,13 @@
-import { Sheet } from '@components/ui';
-import { createFilterMenu, cx } from '@utils';
 import {
   createSignal,
   onCleanup,
   onMount,
   Show,
 } from 'solid-js';
+
+import { createFilterMenu, cx } from '@utils';
+
+import { Sheet } from '@components/ui';
 
 import { FilterBody } from './FilterBody';
 

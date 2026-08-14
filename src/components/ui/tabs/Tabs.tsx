@@ -1,5 +1,6 @@
-import { cx } from '@utils';
 import { Index } from 'solid-js';
+
+import { cx } from '@utils';
 
 import { tabForKey } from './utils/tabUtils';
 
