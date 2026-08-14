@@ -35,8 +35,8 @@ export const FilterRail = (props: FilterRailProps): JSX.Element => {
         </button>
       </div>
       <p class="mb-1 text-xs text-text-muted">
-        Checking a browser adds it to your target list. Each row shows the version you are
-        targeting and how many findings fail on it.
+        Checking a browser adds it to your target list and gives it a column in the grid. Each row
+        shows the version you are targeting.
       </p>
       <For each={ENGINE_GROUP_ORDER}>
         {(group: EngineGroup) => {

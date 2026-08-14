@@ -12,7 +12,6 @@ interface RailResize {
   move: (point: DragPoint) => void;
   stop: () => void;
   nudge: (steps: number) => void;
-  dragging: () => boolean;
 }
 
 interface DragOrigin {
@@ -50,9 +49,6 @@ export const createRailResize = (input: RailResizeInput): RailResize => {
     },
     nudge: (steps) => {
       input.onResize(clampRailWidth(input.width() + steps * RAIL_NUDGE_STEP));
-    },
-    dragging: () => {
-      return origin !== null;
     },
   };
 };

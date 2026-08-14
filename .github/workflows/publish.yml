@@ -24,6 +24,12 @@ jobs:
 
       # A tag that fails the gates must never reach a store.
       - run: pnpm check
+
+      # The same guard CI runs. A registry that has drifted from the curated catalog ships detectors
+      # that silently match nothing, which no other gate here would notice.
+      - run: pnpm generate
+      - run: git diff --exit-code src/lib/compat-data/generatedRegistry.ts
+
       - run: pnpm playwright install --with-deps chromium
       - run: pnpm e2e
 

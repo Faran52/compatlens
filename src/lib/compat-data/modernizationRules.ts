@@ -33,14 +33,14 @@ export const modernizationRules: readonly ModernizationRule[] = [
   {
     id: 'legacy-webkit-any',
     kind: 'css-selector',
-    syntax: ':-webkit-any(',
+    syntax: ':-webkit-any()',
     replacementId: 'css-is',
     advice: 'Replace :-webkit-any() with the standard :is().',
   },
   {
     id: 'legacy-matches-selector',
     kind: 'css-selector',
-    syntax: ':matches(',
+    syntax: ':matches()',
     replacementId: 'css-is',
     advice: 'Replace the withdrawn :matches() with :is().',
   },

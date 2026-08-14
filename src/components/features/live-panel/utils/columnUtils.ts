@@ -13,7 +13,7 @@ import type {
   EngineRun,
 } from '@engine';
 
-export interface GridColumn {
+interface SlotColumn {
   group: EngineGroup;
   slot: BrowserSlotId;
 }
@@ -46,8 +46,8 @@ export const groupForSlot = (slot: BrowserSlotId, input: ColumnInput): EngineGro
 };
 
 // Columns arrive grouped, so a run of one engine is always contiguous and can span in one header.
-export const engineSpansFor = (columns: readonly GridColumn[]): readonly EngineSpan[] => {
-  return columns.reduce<EngineSpan[]>((spans, column) => {
+export const engineSpansFor = (slotColumns: readonly SlotColumn[]): readonly EngineSpan[] => {
+  return slotColumns.reduce<EngineSpan[]>((spans, column) => {
     const last = spans.at(-1);
 
     if (last?.group === column.group) {
@@ -58,13 +58,13 @@ export const engineSpansFor = (columns: readonly GridColumn[]): readonly EngineS
   }, []);
 };
 
-export const columnsFor = (input: ColumnInput): readonly GridColumn[] => {
+export const columnsFor = (input: ColumnInput): readonly SlotColumn[] => {
   return ENGINE_GROUP_ORDER.flatMap((group) => {
     return BROWSER_SLOT_IDS.filter((slot) => {
       return input.selected.has(slot)
         && input.target[slot] !== undefined
         && groupForSlot(slot, input) === group;
-    }).map((slot): GridColumn => {
+    }).map((slot): SlotColumn => {
       return { group, slot };
     });
   });

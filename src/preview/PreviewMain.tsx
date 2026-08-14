@@ -27,8 +27,7 @@ import '../styles/global.css';
 
 const ROUTE = 'https://shop.example.test/products';
 
-// Built only by `vite build --mode preview`, so no production bundle contains the fixture.
-// The panel below renders the real engine's verdicts, not a hand-written imitation of them.
+// Preview-only, so no production bundle carries the fixture, and the verdicts are the real engine's.
 const batch = mergeBatch(
   emptySession(),
   analyzeResources({
@@ -85,39 +84,50 @@ render(() => {
         bcdIdOf,
       }}
       host="127.0.0.1:8765"
-      labelOf={(slot) => {
-        return browserLabels[slot];
+      browsers={{
+        labelOf: (slot) => {
+          return browserLabels[slot];
+        },
+        retiredOf: () => {
+          return undefined;
+        },
+      }}
+      onExport={() => {
+        return undefined;
       }}
       onSelectFinding={setSelected}
       onSelectTab={setTab}
-      allChecked={false}
-      onToggleAll={() => {
-        return undefined;
-      }}
-      onResizeRail={setRailWidth}
-      onToggleSlot={() => {
-        return undefined;
-      }}
-      railWidth={railWidth()}
-      rail={{
-        target: widelyAvailableTarget,
-        selected: previewSelected,
-        groupOf,
-        dormantReason: () => {
-          return 'no release inside this window';
+      filters={{
+        rail: {
+          target: widelyAvailableTarget,
+          selected: previewSelected,
+          groupOf,
+          dormantReason: () => {
+            return 'no release inside this window';
+          },
         },
-      }}
-      retiredOf={() => {
-        return undefined;
+        risks: new Set(['breaks', 'degrades']),
+        onToggleRisk: () => {
+          return undefined;
+        },
+        allChecked: false,
+        onToggleAll: () => {
+          return undefined;
+        },
+        onToggleSlot: () => {
+          return undefined;
+        },
+        width: railWidth(),
+        onResize: setRailWidth,
       }}
       selected={selected()}
       session={session}
-      shortOf={(slot) => {
-        return browserLabels[slot];
-      }}
       tab={tab()}
-      onChangeTheme={() => {
-        return undefined;
+      theme={{
+        mode: 'system',
+        onChange: () => {
+          return undefined;
+        },
       }}
       target={{
         preset: 'widely',
@@ -131,14 +141,9 @@ render(() => {
         },
       }}
       sort="severity"
-      risks={new Set(['breaks', 'degrades'])}
-      onToggleRisk={() => {
-        return undefined;
-      }}
       onSort={() => {
         return undefined;
       }}
-      theme="system"
     />
   );
 }, container);

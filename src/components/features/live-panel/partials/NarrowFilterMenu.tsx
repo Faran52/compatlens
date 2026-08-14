@@ -1,14 +1,13 @@
-import { CheckList } from '@components/ui';
-import { cx } from '@utils';
+import { Sheet } from '@components/ui';
+import { createFilterMenu, cx } from '@utils';
 import {
   createSignal,
   onCleanup,
   onMount,
+  Show,
 } from 'solid-js';
 
-import { playFilterMenuExit } from '../utils/filterMenuUtils';
-
-import { FilterRail } from './FilterRail';
+import { FilterBody } from './FilterBody';
 
 import type { CheckListRow } from '@components/ui';
 import type { BrowserSlotId } from '@engine';
@@ -24,33 +23,25 @@ interface NarrowFilterMenuProps {
   allChecked: boolean;
   onToggleAll: () => void;
   onToggleSlot: (slot: BrowserSlotId) => void;
+  onWideClose: () => void;
 }
 
 export const NarrowFilterMenu = (props: NarrowFilterMenuProps): JSX.Element => {
   const [expanded, setExpanded] = createSignal(false);
   let trigger: HTMLButtonElement | undefined;
-  let dialog: HTMLDialogElement | undefined;
-  let closeButton: HTMLButtonElement | undefined;
 
-  const open = (): void => {
-    dialog?.showModal();
-    setExpanded(true);
-    closeButton?.focus();
-  };
-
-  const close = async (): Promise<void> => {
-    await playFilterMenuExit(dialog, window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-    dialog?.close();
-    setExpanded(false);
-    trigger?.focus();
-  };
+  const menu = createFilterMenu({
+    expanded,
+    setExpanded,
+    onWideClose: () => {
+      props.onWideClose();
+    },
+  });
 
   onMount(() => {
     const wideViewport = window.matchMedia('(min-width: 720px)');
     const closeAtWideViewport = (event: MediaQueryListEvent): void => {
-      if (event.matches && dialog?.open === true) {
-        void close();
-      }
+      menu.closeAtWideViewport(event.matches);
     };
 
     wideViewport.addEventListener('change', closeAtWideViewport);
@@ -62,7 +53,8 @@ export const NarrowFilterMenu = (props: NarrowFilterMenuProps): JSX.Element => {
   return (
     <>
       <button
-        aria-controls="filter-menu"
+        // The sheet is mounted only while open, so naming it while closed would dangle.
+        aria-controls={expanded() ? 'filter-menu' : undefined}
         aria-expanded={expanded()}
         aria-label="Open filters"
         class={cx(
@@ -70,67 +62,33 @@ export const NarrowFilterMenu = (props: NarrowFilterMenuProps): JSX.Element => {
           'hover:border-accent focus-visible:border-accent min-[720px]:hidden',
         )}
         disabled={props.busy}
-        onClick={open}
+        onClick={menu.open}
         ref={trigger}
         type="button"
       >
         <span aria-hidden="true">☰</span>
       </button>
-      <dialog
-        aria-labelledby="filter-menu-title"
-        class={cx(
-          'm-0 h-full max-h-full w-[min(320px,85vw)] max-w-none p-0',
-          'border-y-0 border-r border-l-0 border-hairline bg-transparent shadow-[var(--shadow)]',
-          'motion-safe:animate-filter-menu backdrop:bg-canvas/70 dark:backdrop:bg-canvas/80 min-[720px]:hidden',
-        )}
-        id="filter-menu"
-        onCancel={(event) => {
-          event.preventDefault();
-          void close();
-        }}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) {
-            void close();
-          }
-        }}
-        ref={dialog}
-      >
-        <div
-          aria-busy={props.busy}
-          class={cx(
-            'flex h-full flex-col bg-surface',
-            props.busy ? 'pointer-events-none opacity-50' : '',
-          )}
+      <Show when={expanded()}>
+        <Sheet
+          closeLabel="Close filters"
+          id="filter-menu"
+          onClose={menu.close}
+          opener={trigger}
+          side="left"
+          title="Filters"
         >
-          <div class="flex items-center border-b border-hairline p-2">
-            <h2 class="font-semibold" id="filter-menu-title">Filters</h2>
-            <button
-              aria-label="Close filters"
-              class="ml-auto cursor-pointer rounded border border-hairline bg-surface-raised px-2"
-              onClick={() => {
-                void close();
-              }}
-              ref={closeButton}
-              type="button"
-            >
-              Close
-            </button>
-          </div>
-          <div class="overflow-auto">
-            <div class="p-2">
-              <CheckList heading="Severity" rows={props.severityRows} />
-            </div>
-            <FilterRail
-              allChecked={props.allChecked}
-              labelOf={props.labelOf}
-              onToggleAll={props.onToggleAll}
-              onToggleSlot={props.onToggleSlot}
-              rail={props.rail}
-              retiredOf={props.retiredOf}
-            />
-          </div>
-        </div>
-      </dialog>
+          <FilterBody
+            allChecked={props.allChecked}
+            busy={props.busy}
+            labelOf={props.labelOf}
+            onToggleAll={props.onToggleAll}
+            onToggleSlot={props.onToggleSlot}
+            rail={props.rail}
+            retiredOf={props.retiredOf}
+            severityRows={props.severityRows}
+          />
+        </Sheet>
+      </Show>
     </>
   );
 };

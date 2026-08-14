@@ -3,9 +3,20 @@ import { For } from 'solid-js';
 
 import { CELL_CLASSES, CELL_PILL } from '../support-cell/utils/supportCellUtils';
 
-import { LEGEND_ENTRIES } from './utils/cellLegendUtils';
-
 import type { JSX } from 'solid-js';
+import type { CellState } from '../support-cell/utils/supportCellUtils';
+
+interface LegendEntry {
+  state: CellState;
+  sample: string;
+  meaning: string;
+}
+
+const LEGEND_ENTRIES: readonly LegendEntry[] = [
+  { state: 'supported', sample: '76', meaning: 'Shipped in this version, which your target covers.' },
+  { state: 'too-late', sample: 'from 18', meaning: 'Shipped only from this version, newer than your target.' },
+  { state: 'never', sample: 'never', meaning: 'Never shipped in this browser.' },
+];
 
 export const CellLegend = (): JSX.Element => {
   return (

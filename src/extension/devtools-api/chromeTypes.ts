@@ -1,13 +1,13 @@
 // Narrow facade so nothing below depends on the ambient `chrome` global.
-export interface HarRequest {
+interface HarRequest {
   url: string;
 }
 
-export interface HarContent {
+interface HarContent {
   mimeType: string;
 }
 
-export interface HarResponse {
+interface HarResponse {
   content: HarContent;
 }
 
@@ -21,7 +21,7 @@ export interface HarLog {
   entries: HarEntry[];
 }
 
-export interface NavigationEvent {
+interface NavigationEvent {
   addListener(callback: (url: string) => void): void;
   removeListener(callback: (url: string) => void): void;
 }

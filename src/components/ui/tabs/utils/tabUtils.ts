@@ -1,16 +1,11 @@
-export interface TabDefinition {
-  id: string;
-  tabId: string;
-  panelId: string;
-  label: string;
-  count: number;
-}
+import type { TabDefinition } from '../Tabs';
 
-export const tabIdForKey = (
+// Returns the tab rather than its id, so the caller needs no second lookup to reach its element.
+export const tabForKey = (
   tabs: readonly TabDefinition[],
   activeId: string,
   key: string,
-): string | undefined => {
+): TabDefinition | undefined => {
   const activeIndex = tabs.findIndex((tab) => {
     return tab.id === activeId;
   });
@@ -20,23 +15,19 @@ export const tabIdForKey = (
   }
 
   if (key === 'ArrowLeft') {
-    const previousIndex = activeIndex === 0 ? tabs.length - 1 : activeIndex - 1;
-
-    return tabs[previousIndex]?.id;
+    return tabs[activeIndex === 0 ? tabs.length - 1 : activeIndex - 1];
   }
 
   if (key === 'ArrowRight') {
-    const nextIndex = activeIndex === tabs.length - 1 ? 0 : activeIndex + 1;
-
-    return tabs[nextIndex]?.id;
+    return tabs[activeIndex === tabs.length - 1 ? 0 : activeIndex + 1];
   }
 
   if (key === 'Home') {
-    return tabs[0]?.id;
+    return tabs[0];
   }
 
   if (key === 'End') {
-    return tabs[tabs.length - 1]?.id;
+    return tabs[tabs.length - 1];
   }
 
   return undefined;

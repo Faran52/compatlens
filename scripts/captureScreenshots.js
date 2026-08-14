@@ -21,8 +21,13 @@ const fail = (message) => {
   process.exit(1);
 };
 
-const settle = async (page) => {
-  await page.getByText('anchor-name property').first().waitFor({ state: 'visible' });
+const GRID_ANCHOR = 'anchor-name property';
+
+const MODERNISE_ANCHOR = 'safe to modernise';
+
+// The two tabs share no text, so a shot waits for the one it is about to capture.
+const settle = async (page, anchor) => {
+  await page.getByText(anchor).first().waitFor({ state: 'visible' });
   await page.evaluate(async () => {
     await Promise.all(document.getAnimations().map((animation) => {
       return animation.finished.catch(() => {
@@ -60,21 +65,21 @@ try {
     const page = await context.newPage();
 
     await page.goto(url);
-    await settle(page);
+    await settle(page, GRID_ANCHOR);
     await shot(page, `store-grid-${theme}`);
 
-    await page.getByText('anchor-name property').first().click();
-    await settle(page);
+    await page.getByText(GRID_ANCHOR).first().click();
+    await settle(page, GRID_ANCHOR);
     await shot(page, `store-detail-${theme}`);
 
     await page.getByRole('button', { name: 'Close' }).click();
     await page.getByRole('tab', { name: /Modernise/ }).click();
-    await settle(page);
+    await settle(page, MODERNISE_ANCHOR);
     await shot(page, `store-modernise-${theme}`);
 
     await page.setViewportSize(STORE_SMALL);
     await page.getByRole('tab', { name: /Findings/ }).click();
-    await settle(page);
+    await settle(page, GRID_ANCHOR);
     await shot(page, `store-small-${theme}`);
 
     await page.setViewportSize(PANEL);

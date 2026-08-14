@@ -1,10 +1,17 @@
 import { cx } from '@utils';
-import { For } from 'solid-js';
+import { Index } from 'solid-js';
 
-import { tabIdForKey } from './utils/tabUtils';
+import { tabForKey } from './utils/tabUtils';
 
 import type { JSX } from 'solid-js';
-import type { TabDefinition } from './utils/tabUtils';
+
+export interface TabDefinition {
+  id: string;
+  tabId: string;
+  panelId: string;
+  label: string;
+  count: number;
+}
 
 interface TabsProps {
   tabs: readonly TabDefinition[];
@@ -16,50 +23,44 @@ interface TabsProps {
 export const Tabs = (props: TabsProps): JSX.Element => {
   return (
     <div class="flex items-center gap-0.5 border-b border-hairline bg-surface px-2" role="tablist">
-      <For each={props.tabs}>
+      <Index each={props.tabs}>
         {(tab) => {
           return (
             <button
-              aria-controls={tab.panelId}
-              aria-selected={props.active === tab.id}
+              // Only the active panel is rendered, so pointing at the other one would dangle.
+              aria-controls={props.active === tab().id ? tab().panelId : undefined}
+              aria-selected={props.active === tab().id}
               class={cx(
                 'cursor-pointer border-b-2 px-3 py-2',
-                props.active === tab.id
+                props.active === tab().id
                   ? 'border-accent font-semibold text-text'
                   : 'border-transparent text-text-muted',
               )}
-              id={tab.tabId}
+              id={tab().tabId}
               onClick={() => {
-                props.onSelect(tab.id);
+                props.onSelect(tab().id);
               }}
               onKeyDown={(event) => {
-                const nextId = tabIdForKey(props.tabs, props.active, event.key);
+                const next = tabForKey(props.tabs, props.active, event.key);
 
-                if (nextId === undefined) {
+                if (next === undefined) {
                   return;
                 }
 
                 event.preventDefault();
-                props.onSelect(nextId);
-
-                const nextTab = props.tabs.find((candidate) => {
-                  return candidate.id === nextId;
-                });
-
-                if (nextTab !== undefined) {
-                  document.getElementById(nextTab.tabId)?.focus();
-                }
+                props.onSelect(next.id);
+                document.getElementById(next.tabId)?.focus();
               }}
               role="tab"
-              tabindex={props.active === tab.id ? 0 : -1}
+              tabindex={props.active === tab().id ? 0 : -1}
               type="button"
             >
-              {tab.label}
-              <span class="ml-1.5 opacity-75 tabular-nums">{tab.count}</span>
+              {tab().label}
+              <span class="ml-1.5 opacity-75 tabular-nums">{tab().count}</span>
             </button>
           );
         }}
-      </For>
+      </Index>
       {props.children}
     </div>
   );

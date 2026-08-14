@@ -12,13 +12,19 @@ const keyOf = (occurrence: Occurrence): string => {
   return `${occurrence.featureId}|${occurrence.location.url}|${occurrence.location.path ?? ''}`;
 };
 
+// A batch re-reports what earlier batches already covered, so every list here merges rather than adds.
+const mergeUnique = (kept: readonly string[], arriving: readonly string[]): string[] => {
+  return [...new Set([...kept, ...arriving])];
+};
+
 export const emptySession = (): SessionReport => {
   return {
     occurrences: [],
     suggestions: [],
+    route: '',
     routes: [],
-    resources: { total: 0, parsed: 0, failed: 0 },
-    coverage: { mappedDetections: 0, registryFeatures: 0 },
+    resources: { seen: [], parsed: [] },
+    coverage: { matched: [], registryFeatures: 0 },
     warnings: [],
     watching: false,
     capped: false,
@@ -62,21 +68,17 @@ export const mergeBatch = (
         return !suggestionIds.has(suggestion.id);
       }),
     ],
-    routes: session.routes.includes(context.route)
-      ? session.routes
-      : [...session.routes, context.route],
+    route: context.route,
+    routes: mergeUnique(session.routes, [context.route]),
     resources: {
-      total: session.resources.total + report.resources.total,
-      parsed: session.resources.parsed + report.resources.parsed,
-      failed: session.resources.failed + report.resources.failed,
+      seen: mergeUnique(session.resources.seen, report.resources.seen),
+      parsed: mergeUnique(session.resources.parsed, report.resources.parsed),
     },
     coverage: {
-      mappedDetections: session.coverage.mappedDetections + report.coverage.mappedDetections,
+      matched: mergeUnique(session.coverage.matched, report.coverage.matched),
       registryFeatures: report.coverage.registryFeatures,
     },
-    warnings: [...session.warnings, ...report.warnings.filter((warning) => {
-      return !session.warnings.includes(warning);
-    })],
+    warnings: mergeUnique(session.warnings, report.warnings),
     watching: session.watching,
     capped,
   };

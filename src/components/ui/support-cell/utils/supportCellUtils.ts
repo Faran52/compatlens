@@ -2,7 +2,7 @@ import type { BrowserImpact } from '@engine';
 
 export type CellState = 'supported' | 'too-late' | 'never';
 
-export interface SupportCell {
+interface CellContent {
   state: CellState;
   label: string;
 }
@@ -17,7 +17,7 @@ export const CELL_CLASSES: Readonly<Record<CellState, string>> = {
   'never': 'bg-unverified-surface text-unverified',
 };
 
-export const supportCellFor = (impact: BrowserImpact): SupportCell => {
+export const supportCellFor = (impact: BrowserImpact): CellContent => {
   if (impact.supportedFrom === undefined) {
     return { state: 'never', label: 'never' };
   }

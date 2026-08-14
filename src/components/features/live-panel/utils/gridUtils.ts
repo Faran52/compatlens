@@ -1,4 +1,4 @@
-import { RISK_ORDER } from '@engine';
+import { RISK_LABELS } from '@engine';
 
 import { compareOccurrences } from './sortUtils';
 
@@ -22,18 +22,14 @@ interface SeverityCheckInput {
   onToggle: (risk: RiskLevel) => void;
 }
 
-export const SEVERITY_LABELS: Readonly<Record<RiskLevel, string>> = {
-  breaks: 'Breaks',
-  degrades: 'Degrades',
-};
-
-const RISKS: readonly RiskLevel[] = ['breaks', 'degrades'];
+// Most severe first: this is the order sections render in, and the export writes them in.
+export const RISKS: readonly RiskLevel[] = ['breaks', 'degrades'];
 
 // A severity row keeps its count: unlike a browser, no column in the grid reports the same number.
 export const severityCheckRowsFor = (input: SeverityCheckInput): readonly CheckListRow[] => {
   return RISKS.map((risk) => {
     return {
-      label: SEVERITY_LABELS[risk],
+      label: RISK_LABELS[risk],
       checked: input.risks.has(risk),
       active: true,
       count: {
@@ -64,9 +60,6 @@ export const sectionsFor = (
   return RISKS
     .filter((risk) => {
       return risks.has(risk);
-    })
-    .sort((left, right) => {
-      return RISK_ORDER[left] - RISK_ORDER[right];
     })
     .map((risk) => {
       return {

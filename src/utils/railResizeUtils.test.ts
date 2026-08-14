@@ -85,16 +85,6 @@ describe('createRailResize', () => {
     expect(widths).toEqual([250, 260]);
   });
 
-  it('reports whether a drag is under way', () => {
-    const { resize } = resizeFrom(240);
-
-    expect(resize.dragging()).toBe(false);
-    resize.start({ clientX: 100 });
-    expect(resize.dragging()).toBe(true);
-    resize.stop();
-    expect(resize.dragging()).toBe(false);
-  });
-
   it('moves by one step per arrow press, in either direction', () => {
     const { resize, widths } = resizeFrom(240);
 

@@ -3,13 +3,13 @@ import {
   FeatureCell,
   SupportCell,
 } from '@components/ui';
+import { RISK_LABELS } from '@engine';
 
 import { columnsFor, engineSpansFor } from '../utils/columnUtils';
 import {
   failuresIn,
   impactFor,
   sectionsFor,
-  SEVERITY_LABELS,
   visibleOccurrences,
 } from '../utils/gridUtils';
 import { sortKeyFor } from '../utils/sortUtils';
@@ -29,31 +29,34 @@ interface SupportGridProps {
   risks: ReadonlySet<RiskLevel>;
   sort: SortKey;
   columns: ColumnInput;
-  shortOf: (slot: BrowserSlotId) => string;
+  labelOf: (slot: BrowserSlotId) => string;
   selected: Occurrence | null;
   onSelect: (occurrence: Occurrence) => void;
   onSort: (key: SortKey) => void;
 }
 
 export const SupportGrid = (props: SupportGridProps): JSX.Element => {
-  const slots = () => {
+  const isSelected = (occurrence: Occurrence): boolean => {
+    return props.selected?.id === occurrence.id;
+  };
+  const slotColumns = () => {
     return columnsFor(props.columns);
   };
   const visible = () => {
     return visibleOccurrences(props.occurrences, props.risks);
   };
   const groups = (): readonly GridGroup[] => {
-    return engineSpansFor(slots()).map((span) => {
+    return engineSpansFor(slotColumns()).map((span) => {
       return { key: span.group, label: span.group, span: span.span };
     });
   };
   const columns = (): readonly GridColumn<BrowserSlotId>[] => {
-    return slots().map((column) => {
+    return slotColumns().map((slotColumn) => {
       return {
-        key: column.slot,
-        group: column.group,
-        label: props.shortOf(column.slot),
-        sublabel: `≥ ${props.columns.target[column.slot] ?? ''}`,
+        key: slotColumn.slot,
+        group: slotColumn.group,
+        label: props.labelOf(slotColumn.slot),
+        sublabel: `≥ ${props.columns.target[slotColumn.slot] ?? ''}`,
       };
     });
   };
@@ -66,8 +69,8 @@ export const SupportGrid = (props: SupportGridProps): JSX.Element => {
       columns={columns()}
       groups={groups()}
       lead="Feature"
-      leadCell={(occurrence: Occurrence, selected) => {
-        return <FeatureCell occurrence={occurrence} selected={selected} />;
+      leadCell={(occurrence: Occurrence) => {
+        return <FeatureCell occurrence={occurrence} selected={isSelected(occurrence)} />;
       }}
       onSelect={props.onSelect}
       onSort={(key) => {
@@ -76,13 +79,11 @@ export const SupportGrid = (props: SupportGridProps): JSX.Element => {
       sections={sectionsFor(props.occurrences, props.risks, props.sort).map((section) => {
         return {
           key: section.risk,
-          label: `${SEVERITY_LABELS[section.risk]} (${String(section.occurrences.length)})`,
+          label: `${RISK_LABELS[section.risk]} (${String(section.occurrences.length)})`,
           rows: section.occurrences,
         };
       })}
-      selected={(occurrence: Occurrence) => {
-        return props.selected?.id === occurrence.id;
-      }}
+      selected={isSelected}
       totalCell={(column) => {
         return `${String(failuresIn(visible(), [column.key]))} of ${String(visible().length)}`;
       }}

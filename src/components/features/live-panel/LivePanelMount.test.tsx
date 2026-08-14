@@ -23,9 +23,10 @@ const report = (occurrences: readonly Occurrence[]): SessionReport => {
   return {
     occurrences,
     suggestions: [],
+    route: '/products',
     routes: ['/products'],
-    resources: { total: 1, parsed: 1, failed: 0 },
-    coverage: { mappedDetections: 1, registryFeatures: 34 },
+    resources: { seen: ['/products'], parsed: ['/products'] },
+    coverage: { matched: ['css-anchor-name'], registryFeatures: 34 },
     warnings: [],
     watching: true,
     capped: false,

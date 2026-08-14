@@ -6,6 +6,7 @@ import {
   screen,
   within,
 } from '@solidjs/testing-library';
+import { createSignal } from 'solid-js';
 import {
   describe,
   expect,
@@ -22,10 +23,19 @@ import type {
   RiskLevel,
   SessionReport,
 } from '@engine';
+import type { PanelTab } from './panelTab';
 
 interface PanelFilterHandlers {
   onToggleRisk: (risk: RiskLevel) => void;
   onToggleSlot: (slot: BrowserSlotId) => void;
+}
+
+interface PanelOptions {
+  report?: () => SessionReport;
+  handlers?: PanelFilterHandlers;
+  onExport?: () => void;
+  tab?: PanelTab;
+  selected?: Occurrence | null;
 }
 
 const ALL = new Set(BROWSER_SLOT_IDS);
@@ -45,9 +55,10 @@ const session = (overrides: Partial<SessionReport> = {}): SessionReport => {
   return {
     occurrences: [occurrence],
     suggestions: [],
+    route: '/products',
     routes: ['/products'],
-    resources: { total: 1, parsed: 1, failed: 0 },
-    coverage: { mappedDetections: 1, registryFeatures: 34 },
+    resources: { seen: ['/products'], parsed: ['/products'] },
+    coverage: { matched: ['css-anchor-name'], registryFeatures: 34 },
     warnings: [],
     watching: true,
     capped: false,
@@ -55,48 +66,50 @@ const session = (overrides: Partial<SessionReport> = {}): SessionReport => {
   };
 };
 
-const renderPanel = (
-  report: SessionReport = session(),
-  handlers?: PanelFilterHandlers,
-) => {
+const renderPanel = (options: PanelOptions = {}) => {
+  const report = options.report ?? session;
+  const handlers = options.handlers;
+
   render(() => {
     return (
       <LivePanel
         columns={{ target: { chrome: '121' }, selected: ALL, runs, bcdIdOf }}
         host="127.0.0.1:8765"
-        labelOf={(slot) => {
-          return slot;
+        browsers={{
+          labelOf: (slot) => {
+            return slot;
+          },
+          retiredOf: () => {
+            return undefined;
+          },
         }}
+        onExport={options.onExport ?? vi.fn()}
         onSelectFinding={vi.fn()}
         onSelectTab={vi.fn()}
         onSort={vi.fn()}
-        onToggleRisk={handlers?.onToggleRisk ?? vi.fn()}
-        risks={new Set(['breaks', 'degrades'])}
         sort="severity"
-        onChangeTheme={vi.fn()}
-        allChecked={false}
-        onToggleAll={vi.fn()}
-        onResizeRail={vi.fn()}
-        onToggleSlot={handlers?.onToggleSlot ?? vi.fn()}
-        railWidth={240}
-        rail={{
-          target: { chrome: '121' },
-          selected: new Set(['chrome']),
-          groupOf: () => {
-            return 'Chromium Engine';
+        filters={{
+          rail: {
+            target: { chrome: '121' },
+            selected: new Set(['chrome']),
+            groupOf: () => {
+              return 'Chromium Engine';
+            },
+            dormantReason: () => {
+              return 'paused';
+            },
           },
-          dormantReason: () => {
-            return 'paused';
-          },
+          risks: new Set(['breaks', 'degrades']),
+          onToggleRisk: handlers?.onToggleRisk ?? vi.fn(),
+          allChecked: false,
+          onToggleAll: vi.fn(),
+          onToggleSlot: handlers?.onToggleSlot ?? vi.fn(),
+          width: 240,
+          onResize: vi.fn(),
         }}
-        retiredOf={() => {
-          return undefined;
-        }}
-        selected={null}
-        session={report}
-        shortOf={(slot) => {
-          return slot;
-        }}
+        selected={options.selected ?? null}
+        session={report()}
+        theme={{ mode: 'system', onChange: vi.fn() }}
         target={{
           preset: 'widely',
           years: 4,
@@ -108,8 +121,7 @@ const renderPanel = (
             return undefined;
           },
         }}
-        tab="findings"
-        theme="system"
+        tab={options.tab ?? 'findings'}
       />
     );
   });
@@ -130,19 +142,31 @@ describe('LivePanel', () => {
   });
 
   it('invites the developer to use the page when nothing has been found yet', () => {
-    renderPanel(session({ occurrences: [] }));
+    renderPanel({
+      report: () => {
+        return session({ occurrences: [] });
+      },
+    });
 
     expect(screen.getByText(/Nothing to fix for this target yet/u)).toBeInstanceOf(HTMLElement);
   });
 
   it('says so when the finding limit was reached rather than truncating silently', () => {
-    renderPanel(session({ capped: true }));
+    renderPanel({
+      report: () => {
+        return session({ capped: true });
+      },
+    });
 
     expect(screen.getByText(/finding limit was reached/u)).toBeInstanceOf(HTMLElement);
   });
 
   it('keeps warnings after the empty findings state', () => {
-    renderPanel(session({ occurrences: [], warnings: ['blocked by CSP'] }));
+    renderPanel({
+      report: () => {
+        return session({ occurrences: [], warnings: ['blocked by CSP'] });
+      },
+    });
 
     const empty = screen.getByText(/Nothing to fix for this target yet/u);
     const warning = screen.getByText('blocked by CSP');
@@ -171,7 +195,7 @@ describe('LivePanel', () => {
       onToggleSlot: vi.fn(),
     };
 
-    renderPanel(session(), handlers);
+    renderPanel({ handlers });
     fireEvent.click(screen.getByRole('button', { name: 'Open filters' }));
 
     const menu = within(screen.getByRole('dialog', { name: 'Filters' }));
@@ -188,18 +212,65 @@ describe('LivePanel', () => {
     expect(handlers.onToggleRisk).toHaveBeenCalledWith('breaks');
     expect(handlers.onToggleSlot).toHaveBeenCalledWith('chrome');
   });
+
+  it('offers the report as a file once the page has been read', () => {
+    const onExport = vi.fn();
+
+    renderPanel({ onExport });
+    fireEvent.click(screen.getByRole('button', { name: 'Export .md' }));
+
+    expect(onExport).toHaveBeenCalledTimes(1);
+  });
+
+  it('refuses to export a page it has not read yet', () => {
+    renderPanel({
+      report: () => {
+        return session({ occurrences: [], routes: [] });
+      },
+    });
+
+    const button = screen.getByRole('button', { name: 'Export .md' });
+
+    if (!(button instanceof HTMLButtonElement)) {
+      throw new Error('Export is not a button.');
+    }
+
+    expect(button.disabled).toBe(true);
+  });
+
+  it('keeps focus on the same tab when a report update changes its count', () => {
+    const [report, setReport] = createSignal(session());
+
+    renderPanel({ report });
+
+    const findings = screen.getByRole('tab', { name: /Findings/u });
+
+    findings.focus();
+    setReport(session({ occurrences: [] }));
+
+    expect(screen.getByRole('tab', { name: /Findings/u })).toBe(findings);
+    expect(document.activeElement).toBe(findings);
+  });
 });
 
 describe('LivePanel watching state', () => {
   it('says plainly when it is not watching the page', () => {
-    renderPanel(session({ occurrences: [], watching: false }));
+    renderPanel({
+      report: () => {
+        return session({ occurrences: [], watching: false });
+      },
+    });
 
     expect(screen.getByText(/Not watching this page yet/u)).toBeInstanceOf(HTMLElement);
     expect(screen.getByText('not watching')).toBeInstanceOf(HTMLElement);
   });
 
   it('shows why observation failed rather than looking merely empty', () => {
-    renderPanel(session({ occurrences: [], watching: false, warnings: ['blocked by CSP'] }));
+    renderPanel({
+      report: () => {
+        return session({ occurrences: [], watching: false, warnings: ['blocked by CSP'] });
+      },
+    });
 
     expect(screen.getByText('blocked by CSP')).toBeInstanceOf(HTMLElement);
   });
@@ -207,60 +278,7 @@ describe('LivePanel watching state', () => {
 
 describe('LivePanel tabs', () => {
   it('shows the modernise view when that tab is active', () => {
-    render(() => {
-      return (
-        <LivePanel
-          columns={{ target: { chrome: '121' }, selected: ALL, runs, bcdIdOf }}
-          host="127.0.0.1:8765"
-          labelOf={(slot) => {
-            return slot;
-          }}
-          onChangeTheme={vi.fn()}
-          onSelectFinding={vi.fn()}
-          onSelectTab={vi.fn()}
-          onSort={vi.fn()}
-          onToggleRisk={vi.fn()}
-          allChecked={false}
-          onToggleAll={vi.fn()}
-          onResizeRail={vi.fn()}
-          onToggleSlot={vi.fn()}
-          railWidth={240}
-          rail={{
-            target: { chrome: '121' },
-            selected: new Set(['chrome']),
-            groupOf: () => {
-              return 'Chromium Engine';
-            },
-            dormantReason: () => {
-              return 'paused';
-            },
-          }}
-          retiredOf={() => {
-            return undefined;
-          }}
-          risks={new Set(['breaks', 'degrades'])}
-          selected={null}
-          session={session()}
-          shortOf={(slot) => {
-            return slot;
-          }}
-          sort="severity"
-          tab="modernise"
-          target={{
-            preset: 'widely',
-            years: 4,
-            browsers: 7,
-            onChangePreset: () => {
-              return undefined;
-            },
-            onChangeYears: () => {
-              return undefined;
-            },
-          }}
-          theme="system"
-        />
-      );
-    });
+    renderPanel({ tab: 'modernise' });
 
     expect(screen.getByText(/Nothing to modernise/u)).toBeInstanceOf(HTMLElement);
 
@@ -268,5 +286,17 @@ describe('LivePanel tabs', () => {
 
     expect(panel.id).toBe('modernise-panel');
     expect(panel.getAttribute('aria-labelledby')).toBe('modernise-tab');
+  });
+
+  it('leaves a chosen finding behind with its tab rather than over the modernise list', () => {
+    renderPanel({ selected: occurrence, tab: 'modernise' });
+
+    expect(screen.queryByRole('dialog', { name: occurrence.name })).toBeNull();
+  });
+
+  it('shows the chosen finding while its own tab is active', () => {
+    renderPanel({ selected: occurrence });
+
+    expect(screen.getByRole('dialog', { name: occurrence.name })).toBeInstanceOf(HTMLElement);
   });
 });

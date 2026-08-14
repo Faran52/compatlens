@@ -1,9 +1,9 @@
 import {
-  Drawer,
   SeverityChip,
+  Sheet,
   supportCellFor,
 } from '@components/ui';
-import { fileNameOf } from '@engine';
+import { locationLabelFor } from '@engine';
 import { For, Show } from 'solid-js';
 
 import type { BrowserSlotId, Occurrence } from '@engine';
@@ -20,10 +20,12 @@ export const FindingDrawer = (props: FindingDrawerProps): JSX.Element => {
     <Show when={props.occurrence}>
       {(occurrence) => {
         return (
-          <Drawer
+          <Sheet
             badges={<SeverityChip risk={occurrence().risk} verified={occurrence().verified} />}
+            closeLabel="Close"
             onClose={props.onClose}
-            subtitle={`${occurrence().syntax} · ${fileNameOf(occurrence().location.url)}`}
+            side="bottom"
+            subtitle={`${occurrence().syntax} · ${locationLabelFor(occurrence().location)}`}
             title={occurrence().name}
           >
             <div class="min-w-52 flex-1 rounded bg-surface-raised p-2">
@@ -48,7 +50,7 @@ export const FindingDrawer = (props: FindingDrawerProps): JSX.Element => {
                 MDN documentation
               </a>
             </div>
-          </Drawer>
+          </Sheet>
         );
       }}
     </Show>

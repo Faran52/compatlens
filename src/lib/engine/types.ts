@@ -1,3 +1,5 @@
+import type { IntRange } from '@utils';
+
 // Mirrors every BCD browser of type desktop or mobile; the generator fails if the two drift.
 export type BrowserId
   = | 'chrome'
@@ -41,12 +43,9 @@ export type DetectorKind
 // Partial: a slot with no release inside the chosen window is not a target at all.
 export type BrowserTarget = Readonly<Partial<Record<BrowserSlotId, string>>>;
 
-// Every browser present, unlike BrowserTarget: used where a starting version must always exist.
-export type BrowserVersions = Readonly<Record<BrowserSlotId, string>>;
-
 export type BrowserNames = Readonly<Record<BrowserSlotId, string>>;
 
-export type AgeWindowYears = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
+export type AgeWindowYears = IntRange<1, 15>;
 
 // Which engine a browser shipped from a given version onwards; Edge and Opera both switched.
 export interface EngineRun {
@@ -84,15 +83,23 @@ export interface ResourceInput {
   url: string;
   content: string;
   view?: ResourceView;
+  sourceMap?: string; // the stylesheet's own map, already fetched or decoded from a data: URL
 }
 
-// path is a tree address such as "html>body>div:nth-of-type(2)", stable across both views.
+export interface OriginPosition {
+  url: string;
+  line: number;
+  column: number;
+}
+
+// path is a tree address such as "html:nth-of-type(1)>body:nth-of-type(1)", stable across views.
 export interface SourceLocation {
   url: string;
   line?: number;
   column?: number;
   view?: ResourceView;
   path?: string;
+  origin?: OriginPosition;
 }
 
 export interface DetectedFeature {
@@ -151,22 +158,22 @@ export interface Suggestion {
   location: SourceLocation;
 }
 
-interface ResourceCounts {
-  total: number;
-  parsed: number;
-  failed: number;
+// Urls rather than counts: a stylesheet is re-read on every batch and must not be tallied twice.
+interface ResourceReads {
+  seen: readonly string[];
+  parsed: readonly string[]; // always a subset of seen
 }
 
-interface CoverageCounts {
-  mappedDetections: number;
+interface Coverage {
+  matched: readonly string[]; // registry ids, so a re-read cannot inflate the tally either
   registryFeatures: number;
 }
 
 export interface AnalysisReport {
   findings: readonly Finding[];
   suggestions: readonly Suggestion[];
-  resources: ResourceCounts;
-  coverage: CoverageCounts;
+  resources: ResourceReads;
+  coverage: Coverage;
   warnings: readonly string[];
   durationMs: number;
 }
@@ -185,9 +192,10 @@ export interface Occurrence extends Finding {
 export interface SessionReport {
   occurrences: readonly Occurrence[];
   suggestions: readonly Suggestion[];
+  route: string; // where the page is now, which routes cannot give: it stays in first-seen order
   routes: readonly string[];
-  resources: ResourceCounts;
-  coverage: CoverageCounts;
+  resources: ResourceReads;
+  coverage: Coverage;
   warnings: readonly string[];
   watching: boolean; // false until the page confirms the observer is installed
   capped: boolean; // a hit cap is reported, never silently truncated

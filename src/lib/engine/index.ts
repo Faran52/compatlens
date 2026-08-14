@@ -6,6 +6,7 @@ export {
   EDGE_LEGACY_SLOT,
   ENGINE_GROUP_ORDER,
   ENGINE_GROUPS,
+  RISK_LABELS,
   RISK_ORDER,
 } from './constants';
 export { analyzeResources } from './engine';
@@ -20,7 +21,6 @@ export type {
   BrowserTarget,
   CaptureContext,
   DataVersion,
-  DetectedFeature,
   DetectorDefinition,
   DetectorKind,
   EngineGroup,
@@ -33,10 +33,16 @@ export type {
   ResourceInput,
   RiskLevel,
   SessionReport,
+  SourceLocation,
   Suggestion,
 } from './types';
 export { bcdIdOf } from './utils/browserSlotUtils';
 export { engineAt } from './utils/engineUtils';
+export {
+  isUsableSourceMap,
+  namesExternalSourceMap,
+} from './utils/sourceMapUtils';
 export { compareVersions } from './utils/supportUtils';
-export { fileNameOf,
-  locationLabelFor } from './utils/urlUtils';
+export { locationLabelFor,
+  servedLabelFor,
+  stripQuery } from './utils/urlUtils';

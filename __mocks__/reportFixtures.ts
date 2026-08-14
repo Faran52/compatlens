@@ -7,6 +7,12 @@ import type {
 
 const FIXTURE_HOST = 'shop.example.test';
 
+const FIXTURE_RESOURCES: readonly string[] = [
+  `https://${FIXTURE_HOST}/products`,
+  `https://${FIXTURE_HOST}/assets/app.css`,
+  `https://${FIXTURE_HOST}/assets/theme.css`,
+];
+
 const finding = (
   id: string,
   name: string,
@@ -60,7 +66,7 @@ const findingsFixture: readonly Finding[] = [
   blockedFindingFixture,
   finding('css-oklch', 'oklch() color', 'breaks', {
     kind: 'css-value',
-    syntax: 'oklch(',
+    syntax: 'oklch()',
     location: {
       url: `https://${FIXTURE_HOST}/assets/theme.css`,
       line: 4,
@@ -103,12 +109,11 @@ export const reportFixture: AnalysisReport = {
   suggestions: [suggestionFixture],
   findings: findingsFixture,
   resources: {
-    total: 4,
-    parsed: 4,
-    failed: 0,
+    seen: FIXTURE_RESOURCES,
+    parsed: FIXTURE_RESOURCES,
   },
   coverage: {
-    mappedDetections: 7,
+    matched: ['css-anchor-name', 'css-oklch', 'html-popover', 'css-backdrop-filter'],
     registryFeatures: 30,
   },
   warnings: [],

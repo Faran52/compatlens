@@ -64,6 +64,10 @@ test.describe('CompatLens panel', () => {
 
     await expect(dialog).toBeHidden();
     await expect(trigger).toBeFocused();
+
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveCSS('opacity', '1');
   });
 
   test('closes narrow filters when the viewport widens', async ({ page }) => {
@@ -75,7 +79,13 @@ test.describe('CompatLens panel', () => {
 
     await expect(dialog).toHaveAttribute('open');
     await page.setViewportSize({ width: 720, height: 760 });
-    await expect(dialog).not.toHaveAttribute('open');
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole('separator', { name: 'Resize the browser list' })).toBeFocused();
+
+    await page.setViewportSize({ width: 360, height: 760 });
+    await page.getByRole('button', { name: 'Open filters' }).click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveCSS('opacity', '1');
   });
 
   test('keeps permanent filters at desktop widths', async ({ page }) => {
@@ -147,7 +157,7 @@ test.describe('CompatLens panel', () => {
     await page.goto(PREVIEW);
     await page.getByText('anchor-name property').first().click();
 
-    const row = page.locator('tr[aria-selected="true"]');
+    const row = page.locator('tbody tr[data-selected="true"]');
 
     await expect(row).toHaveCount(1);
     await expect(row.locator('td[data-selected="true"]')).toHaveCount(1);
@@ -219,6 +229,23 @@ test.describe('CompatLens panel', () => {
     expect((await feature.boundingBox())?.x).toBe(before?.x);
   });
 
+  test('keeps the severity heading in place while the browsers scroll', async ({ page }) => {
+    await page.setViewportSize({ width: 640, height: 760 });
+    await page.goto(PREVIEW);
+
+    const heading = page.locator('[data-section] span').first();
+    const before = await heading.boundingBox();
+
+    const scrolled = await page.locator('table').evaluate((table) => {
+      table.parentElement?.scrollBy(400, 0);
+
+      return table.parentElement?.scrollLeft ?? 0;
+    });
+
+    expect(scrolled).toBeGreaterThan(0);
+    expect((await heading.boundingBox())?.x).toBe(before?.x);
+  });
+
   test('names severity in words rather than colour alone', async ({ page }) => {
     await page.goto(PREVIEW);
 
@@ -248,13 +275,24 @@ test.describe('CompatLens panel', () => {
     await expect(legend.filter({ hasText: 'never' })).toContainText('Never shipped in this browser.');
   });
 
-  test('keeps every finding row reachable from the keyboard', async ({ page }) => {
+  test('opens a finding from the keyboard alone, and hands focus back on close', async ({ page }) => {
     await page.goto(PREVIEW);
 
-    const rows = page.locator('tbody tr[tabindex="0"]');
+    const first = page.locator('tbody tr button').first();
 
-    await expect(rows.first()).toBeVisible();
-    expect(await rows.count()).toBeGreaterThan(0);
+    await first.focus();
+    await page.keyboard.press('Enter');
+
+    const sheet = page.getByRole('dialog');
+
+    await expect(sheet).toBeVisible();
+    // Focus must land inside the sheet, or a screen reader is never told it opened.
+    await expect(sheet.getByRole('button', { name: 'Close' })).toBeFocused();
+
+    await page.keyboard.press('Enter');
+
+    await expect(sheet).toBeHidden();
+    await expect(first).toBeFocused();
   });
 
   test('scrolls a wide grid inside itself, never the page', async ({ page }) => {

@@ -5,5 +5,4 @@ afterEach(() => {
   const root = document.documentElement;
 
   delete root.dataset.theme;
-  delete root.dataset.themeMode;
 });

@@ -13,7 +13,6 @@ import type { AnalysisRequest, WorkerLike } from './analysisContract';
 interface FakeWorker extends WorkerLike {
   sent: AnalysisRequest[];
   reply: (data: unknown) => void;
-  terminated: boolean;
 }
 
 const fakeWorker = (): FakeWorker => {
@@ -22,15 +21,11 @@ const fakeWorker = (): FakeWorker => {
 
   return {
     sent,
-    terminated: false,
     postMessage: (message) => {
       sent.push(message);
     },
     addEventListener: (_type, listener) => {
       listeners.push(listener);
-    },
-    terminate() {
-      this.terminated = true;
     },
     reply: (data) => {
       for (const listener of listeners) {
@@ -114,24 +109,16 @@ describe('createAnalysisClient', () => {
     await expect(result).resolves.toEqual(reportFixture);
   });
 
-  it('ignores a reply for a job it is no longer waiting on', () => {
+  it('ignores a reply for a job it is no longer waiting on, and still serves the next one', async () => {
     const worker = fakeWorker();
     const client = createAnalysisClient(worker);
 
-    expect(() => {
-      worker.reply({ kind: 'result', version: ANALYSIS_PROTOCOL, id: 404, report: reportFixture });
-    }).not.toThrow();
-    expect(client).toBeDefined();
-  });
+    worker.reply({ kind: 'result', version: ANALYSIS_PROTOCOL, id: 404, report: reportFixture });
 
-  it('fails the jobs still in flight when it is closed', async () => {
-    const worker = fakeWorker();
-    const client = createAnalysisClient(worker);
     const result = client.analyze(job);
 
-    client.close();
+    worker.reply({ kind: 'result', version: ANALYSIS_PROTOCOL, id: 1, report: reportFixture });
 
-    await expect(result).rejects.toThrow('The analysis worker was closed.');
-    expect(worker.terminated).toBe(true);
+    await expect(result).resolves.toEqual(reportFixture);
   });
 });

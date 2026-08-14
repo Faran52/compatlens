@@ -1,23 +1,28 @@
 :root {
-  color-scheme: light;
-  --canvas: #f6f7f9;
-  --surface: #ffffff;
-  --surface-raised: #f1f3f6;
-  --surface-selected: #e7edfb;
-  --text: #171a21;
-  --text-muted: #626a78;
-  --hairline: #dce0e7;
-  --accent: #315ee8;
-  --accent-hover: #244bc5;
-  --breaks: #c43d2f;
-  --breaks-surface: #fff0ed;
-  --degrades: #9a6700;
-  --degrades-surface: #fff7dc;
-  --ok: #1f7a4d;
-  --unverified: #7252b8;
-  --unverified-surface: #f5f0ff;
-  --focus: #315ee8;
-  --shadow: 0 8px 28px rgb(23 26 33 / 0.08);
+  /* Both, so an unset data-theme follows the OS and light-dark() below resolves against it. */
+  color-scheme: light dark;
+  --canvas: light-dark(#f6f7f9, #111319);
+  --surface: light-dark(#ffffff, #181b22);
+  --surface-raised: light-dark(#f1f3f6, #20242d);
+  --surface-selected: light-dark(#e7edfb, #1d2740);
+  --text: light-dark(#171a21, #f2f4f8);
+  --text-muted: light-dark(#626a78, #a8b0bf);
+  --hairline: light-dark(#dce0e7, #303642);
+  --accent: light-dark(#315ee8, #89a6ff);
+  --accent-hover: light-dark(#244bc5, #adc0ff);
+  --breaks: light-dark(#c43d2f, #ff9b8e);
+  --breaks-surface: light-dark(#fff0ed, #3a201f);
+  --degrades: light-dark(#9a6700, #efc66c);
+  --degrades-surface: light-dark(#fff7dc, #352b17);
+  --ok: light-dark(#1f7a4d, #6ed49b);
+  --unverified: light-dark(#7252b8, #cbb7ff);
+  --unverified-surface: light-dark(#f5f0ff, #2c2440);
+  --focus: light-dark(#315ee8, #a9bcff);
+
+  /* light-dark() takes a colour, never a length, so each theme paints the other's geometry away. */
+  --shadow:
+    0 8px 28px light-dark(rgb(23 26 33 / 0.08), transparent),
+    0 10px 32px light-dark(transparent, rgb(0 0 0 / 0.28));
 
   --space-1: 6px;
   --space-2: 10px;
@@ -30,50 +35,11 @@
   --text-leading: 1.45;
 }
 
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --canvas: #111319;
-  --surface: #181b22;
-  --surface-raised: #20242d;
-  --surface-selected: #1d2740;
-  --text: #f2f4f8;
-  --text-muted: #a8b0bf;
-  --hairline: #303642;
-  --accent: #89a6ff;
-  --accent-hover: #adc0ff;
-  --breaks: #ff9b8e;
-  --breaks-surface: #3a201f;
-  --degrades: #efc66c;
-  --degrades-surface: #352b17;
-  --ok: #6ed49b;
-  --unverified: #cbb7ff;
-  --unverified-surface: #2c2440;
-  --focus: #a9bcff;
-  --shadow: 0 10px 32px rgb(0 0 0 / 0.28);
+/* Picking a theme narrows color-scheme, and every token above resolves from it in one place. */
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
-/* The panel writes data-theme as soon as it mounts. This block only covers the first paint, so a
-   developer in dark mode never sees a white flash before that runs. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    color-scheme: dark;
-    --canvas: #111319;
-    --surface: #181b22;
-    --surface-raised: #20242d;
-    --surface-selected: #1d2740;
-    --text: #f2f4f8;
-    --text-muted: #a8b0bf;
-    --hairline: #303642;
-    --accent: #89a6ff;
-    --accent-hover: #adc0ff;
-    --breaks: #ff9b8e;
-    --breaks-surface: #3a201f;
-    --degrades: #efc66c;
-    --degrades-surface: #352b17;
-    --ok: #6ed49b;
-    --unverified: #cbb7ff;
-    --unverified-surface: #2c2440;
-    --focus: #a9bcff;
-    --shadow: 0 10px 32px rgb(0 0 0 / 0.28);
-  }
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }

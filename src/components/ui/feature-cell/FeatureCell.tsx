@@ -1,4 +1,4 @@
-import { locationLabelFor } from '@engine';
+import { locationLabelFor, servedLabelFor } from '@engine';
 import { cx } from '@utils';
 
 import { SeverityChip } from '../severity-chip/SeverityChip';
@@ -22,14 +22,23 @@ export const FeatureCell = (props: FeatureCellProps): JSX.Element => {
       data-selected={props.selected ? 'true' : 'false'}
     >
       <div class="flex flex-wrap items-center gap-2">
-        <span class="font-semibold">{props.occurrence.name}</span>
+        <button
+          // No handler: the row above owns the click, and this is what a keyboard can reach.
+          class="cursor-pointer text-left font-semibold"
+          type="button"
+        >
+          {props.occurrence.name}
+        </button>
         <SeverityChip risk={props.occurrence.risk} verified={props.occurrence.verified} />
       </div>
       <div class="mt-0.5 flex flex-wrap items-center gap-2">
         <code class="rounded bg-surface-raised px-1 font-mono text-xs">
           {props.occurrence.syntax}
         </code>
-        <span class="font-mono text-[10px] text-text-muted">
+        <span
+          class="font-mono text-[10px] text-text-muted"
+          title={servedLabelFor(props.occurrence.location)}
+        >
           {locationLabelFor(props.occurrence.location)}
         </span>
       </div>

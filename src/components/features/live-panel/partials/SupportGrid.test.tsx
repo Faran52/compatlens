@@ -56,15 +56,15 @@ const renderGrid = (
           runs,
           bcdIdOf,
         }}
+        labelOf={(slot) => {
+          return slot;
+        }}
         occurrences={occurrences}
         onSelect={vi.fn()}
         onSort={onSort}
         risks={new Set(['breaks', 'degrades'])}
         selected={null}
         sort="severity"
-        shortOf={(slot) => {
-          return slot;
-        }}
       />
     );
   });
@@ -136,12 +136,5 @@ describe('SupportGrid', () => {
     renderGrid();
 
     expect(screen.getByText(blockedFindingFixture.name)).toBeInstanceOf(HTMLElement);
-  });
-
-  it('makes every row reachable from the keyboard', () => {
-    renderGrid();
-
-    expect(screen.getByText(blockedFindingFixture.name).closest('tr')?.getAttribute('tabindex'))
-      .toBe('0');
   });
 });

@@ -3,11 +3,10 @@ import { ANALYSIS_PROTOCOL, isAnalysisResponse } from './analysisContract';
 import type { AnalysisReport } from '@engine';
 import type { AnalysisRequest, WorkerLike } from './analysisContract';
 
-export type AnalysisJob = Omit<AnalysisRequest, 'kind' | 'version' | 'id'>;
+type AnalysisJob = Omit<AnalysisRequest, 'kind' | 'version' | 'id'>;
 
-export interface AnalysisClient {
+interface AnalysisClient {
   analyze(job: AnalysisJob): Promise<AnalysisReport>;
-  close(): void;
 }
 
 interface Pending {
@@ -52,14 +51,6 @@ export const createAnalysisClient = (worker: WorkerLike): AnalysisClient => {
         pending.set(id, { resolve, reject });
         worker.postMessage({ kind: 'analyze', version: ANALYSIS_PROTOCOL, id, ...job });
       });
-    },
-    close: () => {
-      for (const waiting of pending.values()) {
-        waiting.reject(new Error('The analysis worker was closed.'));
-      }
-
-      pending.clear();
-      worker.terminate();
     },
   };
 };

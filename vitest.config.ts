@@ -1,12 +1,15 @@
 import solid from 'vite-plugin-solid';
 import { defineConfig, type ViteUserConfig } from 'vitest/config';
 
-export const EXCLUDE_COVERAGE = [
+const EXCLUDE_COVERAGE = [
+  // A test measuring itself says nothing about the source it protects.
   '**/*.test.{ts,tsx}',
 
+  // Types erase at build time, so there is no statement here for a test to reach.
   '**/*.d.ts',
   'src/lib/engine/types.ts',
 
+  // A barrel only re-exports; the names it publishes are covered where they are declared.
   '**/index.{ts,tsx}',
 
   'src/lib/compat-data/generatedRegistry.ts', // generated data, not logic

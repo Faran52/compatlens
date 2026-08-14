@@ -75,3 +75,9 @@ export const RISK_ORDER: Readonly<Record<RiskLevel, number>> = {
   breaks: 0,
   degrades: 1,
 };
+
+// One wording for the chip, the grid section and the export, so a rename cannot reach only two.
+export const RISK_LABELS: Readonly<Record<RiskLevel, string>> = {
+  breaks: 'Breaks',
+  degrades: 'Degrades',
+};

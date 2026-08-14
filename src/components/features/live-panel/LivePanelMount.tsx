@@ -6,20 +6,24 @@ import {
 import { resolveTheme } from '@components/ui';
 import { bcdIdOf, DEFAULT_BROWSER_SLOTS } from '@engine';
 import { resolveTargetPreset } from '@model';
+import {
+  clampRailWidth,
+  hostOf,
+  toggleIn,
+} from '@utils';
 import { createSignal, onCleanup } from 'solid-js';
 import { render } from 'solid-js/web';
 
 import { LivePanel } from './LivePanel';
 import { groupForSlot } from './utils/columnUtils';
+import { exportFileName, reportToMarkdown } from './utils/exportUtils';
 import { failingOn } from './utils/gridUtils';
-import { clampRailWidth } from './utils/railResizeUtils';
 import {
   activeSlotsFor,
   bulkSlotsFor,
   everySlotChecked,
 } from './utils/railUtils';
 import { retiredYearFor } from './utils/retiredUtils';
-import { toggleIn } from './utils/toggleUtils';
 
 import type { ThemeMode } from '@components/ui';
 import type {
@@ -50,6 +54,22 @@ const AGE_PRESETS: Readonly<Record<AgeWindowYears, TargetPreset>> = {
   1: 'age-1', 2: 'age-2', 3: 'age-3', 4: 'age-4', 5: 'age-5',
   6: 'age-6', 7: 'age-7', 8: 'age-8', 9: 'age-9', 10: 'age-10',
   11: 'age-11', 12: 'age-12', 13: 'age-13', 14: 'age-14', 15: 'age-15',
+};
+
+// A blob and an anchor, so the file never leaves the machine and no permission is needed for it.
+const downloadMarkdown = (report: SessionReport, host: string, target: BrowserTarget): void => {
+  const exportedAt = new Date().toISOString();
+  const blob = new Blob(
+    [reportToMarkdown({ report, host, target, exportedAt })],
+    { type: 'text/markdown' },
+  );
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = exportFileName(host, exportedAt);
+  link.click();
+  URL.revokeObjectURL(url);
 };
 
 // The panel owns cadence; the session owns accumulation. Neither knows about the other's timer.
@@ -96,53 +116,61 @@ export const mountLivePanel = (mount: LivePanelMount): (() => void) => {
           bcdIdOf,
         }}
         host={mount.host}
-        labelOf={(slot) => {
-          return browserLabels[slot];
-        }}
-        onSelectFinding={setSelected}
-        onSelectTab={setTab}
-        allChecked={everySlotChecked(slots())}
-        onToggleAll={() => {
-          setSlots(bulkSlotsFor(everySlotChecked(slots())));
-        }}
-        onResizeRail={(width) => {
-          setRailWidth(width);
-        }}
-        onToggleSlot={(slot) => {
-          setSlots(toggleIn(slots(), slot));
-        }}
-        railWidth={railWidth()}
-        rail={{
-          target: target(),
-          selected: slots(),
-          groupOf: (slot) => {
-            return groupForSlot(slot, {
+        browsers={{
+          labelOf: (slot) => {
+            return browserLabels[slot];
+          },
+          retiredOf: (slot) => {
+            return retiredYearFor(slot, {
               target: target(),
-              selected: slots(),
               runs: engineRuns,
+              retired: retiredEngines,
               bcdIdOf,
             });
           },
-          dormantReason: () => {
-            return 'no release inside this window';
-          },
         }}
-        retiredOf={(slot) => {
-          return retiredYearFor(slot, {
+        onSelectFinding={setSelected}
+        onSelectTab={setTab}
+        filters={{
+          rail: {
             target: target(),
-            runs: engineRuns,
-            retired: retiredEngines,
-            bcdIdOf,
-          });
+            selected: slots(),
+            groupOf: (slot) => {
+              return groupForSlot(slot, {
+                target: target(),
+                selected: slots(),
+                runs: engineRuns,
+                bcdIdOf,
+              });
+            },
+            dormantReason: () => {
+              return 'no release inside this window';
+            },
+          },
+          risks: risks(),
+          onToggleRisk: (risk) => {
+            setRisks(toggleIn(risks(), risk));
+          },
+          allChecked: everySlotChecked(slots()),
+          onToggleAll: () => {
+            setSlots(bulkSlotsFor(everySlotChecked(slots())));
+          },
+          onToggleSlot: (slot) => {
+            setSlots(toggleIn(slots(), slot));
+          },
+          width: railWidth(),
+          onResize: (width) => {
+            setRailWidth(width);
+          },
         }}
         selected={selected()}
         session={targeted()}
-        shortOf={(slot) => {
-          return browserLabels[slot];
-        }}
-        onChangeTheme={(mode) => {
-          setTheme(mode);
-          document.documentElement.dataset.theme = resolveTheme(mode, mount.prefersDark());
+        theme={{
+          mode: theme(),
+          onChange: (mode) => {
+            setTheme(mode);
+            document.documentElement.dataset.theme = resolveTheme(mode, mount.prefersDark());
+          },
         }}
         target={{
           preset: preset(),
@@ -162,14 +190,12 @@ export const mountLivePanel = (mount: LivePanelMount): (() => void) => {
             void mount.session.reset();
           },
         }}
-        onSort={setSort}
-        onToggleRisk={(risk) => {
-          setRisks(toggleIn(risks(), risk));
+        onExport={() => {
+          downloadMarkdown(targeted(), hostOf(targeted().route, mount.host), target());
         }}
-        risks={risks()}
+        onSort={setSort}
         sort={sort()}
         tab={tab()}
-        theme={theme()}
       />
     );
   }, mount.container);

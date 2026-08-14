@@ -1,10 +1,43 @@
 import { cx } from '@utils';
 import { For, Show } from 'solid-js';
 
-import { SELECTING_KEYS, SORT_BY_LEAD } from './utils/dataGridUtils';
-
 import type { JSX } from 'solid-js';
-import type { DataGridProps } from './utils/dataGridUtils';
+
+export interface GridGroup {
+  key: string;
+  label: string;
+  span: number;
+}
+
+export interface GridColumn<Key extends string = string> {
+  key: Key;
+  group: string;
+  label: string;
+  sublabel: string;
+}
+
+interface GridSection<Row> {
+  key: string;
+  label: string;
+  rows: readonly Row[];
+}
+
+export interface DataGridProps<Row, Key extends string = string> {
+  lead: string;
+  groups: readonly GridGroup[];
+  columns: readonly GridColumn<Key>[];
+  totalsLabel: string;
+  sections: readonly GridSection<Row>[];
+  selected: (row: Row) => boolean;
+  onSort: (key: string) => void;
+  onSelect: (row: Row) => void;
+  totalCell: (column: GridColumn<Key>) => string;
+  // Takes no selected flag: reading one here would rebuild the cell, and its focus, on every pick.
+  leadCell: (row: Row) => JSX.Element;
+  cell: (row: Row, column: GridColumn<Key>) => JSX.Element;
+}
+
+export const SORT_BY_LEAD = 'lead';
 
 export const DataGrid = <Row, Key extends string>(props: DataGridProps<Row, Key>): JSX.Element => {
   return (
@@ -105,27 +138,21 @@ export const DataGrid = <Row, Key extends string>(props: DataGridProps<Row, Key>
                     colspan={props.columns.length + 1}
                     data-section={section.key}
                   >
-                    {section.label}
+                    <span class="sticky left-2 inline-block">{section.label}</span>
                   </td>
                 </tr>
                 <For each={section.rows}>
                   {(row) => {
                     return (
                       <tr
-                        aria-selected={props.selected(row)}
                         class={props.selected(row) ? 'bg-surface-selected' : ''}
+                        data-selected={props.selected(row) ? 'true' : 'false'}
+                        // A row click is mouse convenience; the lead cell's button is what announces it.
                         onClick={() => {
                           props.onSelect(row);
                         }}
-                        onKeyDown={(event) => {
-                          if (SELECTING_KEYS.includes(event.key)) {
-                            event.preventDefault();
-                            props.onSelect(row);
-                          }
-                        }}
-                        tabindex="0"
                       >
-                        {props.leadCell(row, props.selected(row))}
+                        {props.leadCell(row)}
                         <For each={props.columns}>
                           {(column) => {
                             return props.cell(row, column);

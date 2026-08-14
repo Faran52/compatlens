@@ -38,20 +38,6 @@ describe('compareOccurrences', () => {
     expect(sorted('feature', [breaks, degrades])).toEqual(['alpha', 'zeta']);
   });
 
-  it('sorts by source url then line', () => {
-    const first = occurrence({ name: 'a', location: { url: 'https://x.test/a.css', line: 9 } });
-    const second = occurrence({ name: 'b', location: { url: 'https://x.test/a.css', line: 2 } });
-
-    expect(sorted('source', [first, second])).toEqual(['b', 'a']);
-  });
-
-  it('sorts by url before line when the urls differ', () => {
-    const first = occurrence({ name: 'a', location: { url: 'https://x.test/b.css', line: 1 } });
-    const second = occurrence({ name: 'b', location: { url: 'https://x.test/a.css', line: 9 } });
-
-    expect(sorted('source', [first, second])).toEqual(['b', 'a']);
-  });
-
   it('ranks what fails on a chosen browser first', () => {
     const fails = occurrence({
       name: 'fails',
@@ -83,20 +69,6 @@ describe('compareOccurrences', () => {
     const two = occurrence({ name: 'aaa', risk: 'breaks', impacts });
 
     expect(sorted('safari', [one, two])).toEqual(['aaa', 'bbb']);
-  });
-
-  it('treats a missing line on either side as the top of the file', () => {
-    const noLine = occurrence({ name: 'b', location: { url: 'https://x.test/a.css' } });
-    const withLine = occurrence({ name: 'a', location: { url: 'https://x.test/a.css', line: 3 } });
-
-    expect(sorted('source', [noLine, withLine])).toEqual(['b', 'a']);
-  });
-
-  it('treats a missing line as the top of the file', () => {
-    const noLine = occurrence({ name: 'a', location: { url: 'https://x.test/a.css' } });
-    const withLine = occurrence({ name: 'b', location: { url: 'https://x.test/a.css', line: 3 } });
-
-    expect(sorted('source', [withLine, noLine])).toEqual(['a', 'b']);
   });
 });
 

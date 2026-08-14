@@ -17,8 +17,13 @@ const reportWith = (findings: readonly Finding[], overrides: Partial<AnalysisRep
   return {
     findings,
     suggestions: [],
-    resources: { total: 1, parsed: 1, failed: 0 },
-    coverage: { mappedDetections: findings.length, registryFeatures: 34 },
+    resources: { seen: ['/a.css'], parsed: ['/a.css'] },
+    coverage: {
+      matched: findings.map((finding) => {
+        return finding.featureId;
+      }),
+      registryFeatures: 34,
+    },
     warnings: [],
     durationMs: 1,
     ...overrides,
@@ -66,13 +71,32 @@ describe('mergeBatch', () => {
     expect(third.routes).toEqual([context.route, other.route]);
   });
 
-  it('adds up resources and detections across batches', () => {
+  it('counts a resource re-read on a later batch once, not twice', () => {
     const first = mergeBatch(emptySession(), reportWith([blockedFindingFixture]), context);
-    const second = mergeBatch(first, reportWith([degradedFindingFixture]), other);
+    const second = mergeBatch(first, reportWith([blockedFindingFixture]), other);
 
-    expect(second.resources).toEqual({ total: 2, parsed: 2, failed: 0 });
-    expect(second.coverage.mappedDetections).toBe(2);
+    expect(second.resources).toEqual({ seen: ['/a.css'], parsed: ['/a.css'] });
     expect(second.coverage.registryFeatures).toBe(34);
+  });
+
+  it('counts a feature matched again on a later batch once, not twice', () => {
+    const first = mergeBatch(emptySession(), reportWith([blockedFindingFixture]), context);
+    const second = mergeBatch(first, reportWith([blockedFindingFixture]), other);
+
+    expect(second.coverage.matched).toEqual([blockedFindingFixture.featureId]);
+  });
+
+  it('collects a resource and a feature the earlier batches had not seen', () => {
+    const first = mergeBatch(emptySession(), reportWith([blockedFindingFixture]), context);
+    const second = mergeBatch(first, reportWith([degradedFindingFixture], {
+      resources: { seen: ['/b.css'], parsed: [] },
+    }), other);
+
+    expect(second.resources).toEqual({ seen: ['/a.css', '/b.css'], parsed: ['/a.css'] });
+    expect(second.coverage.matched).toEqual([
+      blockedFindingFixture.featureId,
+      degradedFindingFixture.featureId,
+    ]);
   });
 
   it('keeps a warning once however many batches repeat it', () => {

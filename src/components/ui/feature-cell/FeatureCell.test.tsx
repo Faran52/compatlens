@@ -36,6 +36,13 @@ describe('FeatureCell', () => {
     expect(screen.getByText('anchor-name')).toBeInstanceOf(HTMLElement);
   });
 
+  it('gives the row one keyboard reachable control, named after the feature', () => {
+    renderCell(occurrence({ name: 'anchor-name property' }));
+
+    expect(screen.getByRole('button', { name: 'anchor-name property' }))
+      .toBeInstanceOf(HTMLButtonElement);
+  });
+
   it('shows the file and line, not the whole url', () => {
     renderCell(occurrence({ location: { url: 'https://x.test/deep/app.css', line: 31 } }));
 

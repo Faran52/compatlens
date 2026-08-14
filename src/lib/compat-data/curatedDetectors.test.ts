@@ -97,6 +97,19 @@ describe('curatedDetectors', () => {
     expect(registryIds).toEqual(curatedIds);
   });
 
+  it('carries the syntax a detector matches on into the registry unchanged', () => {
+    const byId = new Map(featureRegistry.map((entry) => {
+      return [entry.id, entry];
+    }));
+    const drifted = curatedDetectors.filter((detector) => {
+      const entry = byId.get(detector.id);
+
+      return entry?.syntax !== detector.syntax || entry.kind !== detector.kind;
+    });
+
+    expect(drifted).toEqual([]);
+  });
+
   it('records the pinned dataset versions on every registry entry', () => {
     const versions = new Set(featureRegistry.map((entry) => {
       return `${entry.dataVersion.bcd}/${entry.dataVersion.webFeatures}`;

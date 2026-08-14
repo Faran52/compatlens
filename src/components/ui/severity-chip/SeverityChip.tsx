@@ -1,3 +1,4 @@
+import { RISK_LABELS } from '@engine';
 import { cx } from '@utils';
 
 import type { RiskLevel } from '@engine';
@@ -7,11 +8,6 @@ interface SeverityChipProps {
   risk: RiskLevel;
   verified: boolean;
 }
-
-const LABELS: Readonly<Record<RiskLevel, string>> = {
-  breaks: 'Breaks',
-  degrades: 'Degrades',
-};
 
 // Severity and confidence are separate: unverified sits beside the label, never replaces it.
 export const SeverityChip = (props: SeverityChipProps): JSX.Element => {
@@ -26,7 +22,7 @@ export const SeverityChip = (props: SeverityChipProps): JSX.Element => {
         )}
         data-severity={props.risk}
       >
-        {LABELS[props.risk]}
+        {RISK_LABELS[props.risk]}
       </span>
       {props.verified
         ? null

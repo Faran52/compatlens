@@ -7,8 +7,12 @@ import sharp from 'sharp';
 // Five hand-drawn rasters drift out of sync; one SVG plus a render step cannot.
 const SIZES = [16, 32, 48, 128];
 
-const iconsDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'icons');
-const source = join(iconsDir, 'icon.svg');
+const here = dirname(fileURLToPath(import.meta.url));
+
+// The source sits beside this script, not in public/, so a build input never ships in the archive.
+const source = join(here, 'icon.svg');
+
+const iconsDir = join(here, '..', 'public', 'icons');
 
 await mkdir(iconsDir, { recursive: true });
 

@@ -1,11 +1,10 @@
-import { type DefaultTreeAdapterTypes, parse } from 'parse5';
-
+import type { DefaultTreeAdapterTypes } from 'parse5';
 import type {
   DetectedFeature,
-  ResourceInput,
   SourceLocation,
   SyntaxDefinition,
 } from '../types';
+import type { PositionedElement } from './walkElements';
 
 interface HtmlSyntaxIndex {
   elements: Map<string, string>;
@@ -101,45 +100,14 @@ const collectElementFeatures = (
   return detections;
 };
 
-const walkChildren = ( // nth-of-type survives script inserting a different tag among the siblings.
-  nodes: readonly DefaultTreeAdapterTypes.ChildNode[],
-  index: HtmlSyntaxIndex,
-  url: string,
-  parentPath: string,
-): DetectedFeature[] => {
-  const detections: DetectedFeature[] = [];
-  const seenTags = new Map<string, number>();
-
-  for (const node of nodes) {
-    if (!('tagName' in node)) {
-      continue;
-    }
-
-    const position = (seenTags.get(node.tagName) ?? 0) + 1;
-
-    seenTags.set(node.tagName, position);
-
-    const path = `${parentPath}${parentPath === '' ? '' : '>'}`
-      + `${node.tagName}:nth-of-type(${String(position)})`;
-
-    detections.push(...collectElementFeatures(node, index, url, path));
-
-    // Shadow markup lives on template.content; the marker stops paths colliding with light DOM.
-    if ('content' in node) {
-      detections.push(...walkChildren(node.content.childNodes, index, url, `${path}::shadow`));
-    }
-
-    detections.push(...walkChildren(node.childNodes, index, url, path));
-  }
-
-  return detections;
-};
-
 export const detectHtmlFeatures = ( // reads element and attribute names only, never values or text.
-  resource: ResourceInput,
+  elements: readonly PositionedElement[],
+  url: string,
   definitions: readonly SyntaxDefinition[],
 ): DetectedFeature[] => {
-  const document = parse(resource.content, { sourceCodeLocationInfo: true });
+  const index = buildIndex(definitions);
 
-  return walkChildren(document.childNodes, buildIndex(definitions), resource.url, '');
+  return elements.flatMap((found) => {
+    return collectElementFeatures(found.element, index, url, found.path);
+  });
 };

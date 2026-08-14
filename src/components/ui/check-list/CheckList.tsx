@@ -1,37 +1,55 @@
 import { cx } from '@utils';
-import { For, Show } from 'solid-js';
-
-import { countTitleFor } from './utils/checkListUtils';
+import { Index, Show } from 'solid-js';
 
 import type { JSX } from 'solid-js';
-import type { CheckListRow } from './utils/checkListUtils';
+
+interface CheckListCount {
+  value: number;
+  noun: string;
+}
+
+export interface CheckListRow {
+  label: string;
+  checked: boolean;
+  active: boolean;
+  count?: CheckListCount; // omitted where the grid already reports the same number
+  badge?: string;
+  meta?: string; // short enough to sit beside the label without squeezing it
+  note?: string; // a sentence, so it gets its own line rather than crushing the label
+  onToggle: () => void;
+}
 
 interface CheckListProps {
   heading: string;
   rows: readonly CheckListRow[];
 }
 
+// A bare number in a narrow column says nothing, so the reason for it travels with it.
+const countTitleFor = (count: CheckListCount): string => {
+  return `${String(count.value)} ${count.noun}`;
+};
+
 export const CheckList = (props: CheckListProps): JSX.Element => {
   return (
     <Show when={props.rows.length > 0}>
       <h4 class="mt-3 text-[11px] tracking-wide text-text-muted uppercase">{props.heading}</h4>
-      <For each={props.rows}>
+      <Index each={props.rows}>
         {(row) => {
           return (
             <label
               class="block cursor-pointer rounded px-1 py-0.5"
-              data-active={row.active ? 'true' : 'false'}
+              data-active={row().active ? 'true' : 'false'}
             >
               <span class="flex items-center gap-1.5">
                 <input
-                  checked={row.checked}
+                  checked={row().checked}
                   onChange={() => {
-                    row.onToggle();
+                    row().onToggle();
                   }}
                   type="checkbox"
                 />
-                <span class="min-w-0 flex-1 truncate">{row.label}</span>
-                <Show when={row.badge}>
+                <span class="min-w-0 flex-1 truncate">{row().label}</span>
+                <Show when={row().badge}>
                   {(badge) => {
                     return (
                       <span
@@ -45,7 +63,7 @@ export const CheckList = (props: CheckListProps): JSX.Element => {
                     );
                   }}
                 </Show>
-                <Show when={row.meta}>
+                <Show when={row().meta}>
                   {(meta) => {
                     return (
                       <span class="shrink-0 text-[10px] whitespace-nowrap text-text-muted">
@@ -54,7 +72,7 @@ export const CheckList = (props: CheckListProps): JSX.Element => {
                     );
                   }}
                 </Show>
-                <Show when={row.count}>
+                <Show when={row().count}>
                   {(count) => {
                     return (
                       <span
@@ -67,7 +85,7 @@ export const CheckList = (props: CheckListProps): JSX.Element => {
                   }}
                 </Show>
               </span>
-              <Show when={row.note}>
+              <Show when={row().note}>
                 {(note) => {
                   return <span class="block pl-6 text-[10px] text-text-muted">{note()}</span>;
                 }}
@@ -75,7 +93,7 @@ export const CheckList = (props: CheckListProps): JSX.Element => {
             </label>
           );
         }}
-      </For>
+      </Index>
     </Show>
   );
 };

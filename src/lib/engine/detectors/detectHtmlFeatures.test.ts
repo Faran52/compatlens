@@ -5,12 +5,15 @@ import {
 } from 'vitest';
 
 import { detectHtmlFeatures } from './detectHtmlFeatures';
+import { walkElements } from './walkElements';
 
 import type {
+  DetectedFeature,
   DetectorKind,
   FeatureRegistryEntry,
-  ResourceInput,
 } from '../types';
+
+const URL = 'https://example.test/';
 
 const entry = (id: string, kind: DetectorKind, syntax: string): FeatureRegistryEntry => {
   return {
@@ -41,19 +44,15 @@ const registry: readonly FeatureRegistryEntry[] = [
   entry('html-details-name', 'html-attribute', 'details[name]'),
   entry('html-declarative-shadow-dom', 'html-attribute', 'template[shadowrootmode]'),
   entry('html-broken-syntax', 'html-attribute', 'not a selector'),
-  entry('css-has', 'css-selector', ':has('),
+  entry('css-has', 'css-selector', ':has()'),
 ];
 
-const html = (content: string): ResourceInput => {
-  return {
-    kind: 'html',
-    url: 'https://example.test/',
-    content,
-  };
+const detect = (content: string): DetectedFeature[] => {
+  return detectHtmlFeatures(walkElements(content), URL, registry);
 };
 
 const featureIds = (content: string): string[] => {
-  return detectHtmlFeatures(html(content), registry).map((detection) => {
+  return detect(content).map((detection) => {
     return detection.featureId;
   });
 };
@@ -66,12 +65,10 @@ describe('detectHtmlFeatures', () => {
   });
 
   it('reports the source url, line and column of an attribute', () => {
-    const detections = detectHtmlFeatures(html('<p>hi</p>\n<div popover></div>'), registry);
-
-    expect(detections).toContainEqual({
+    expect(detect('<p>hi</p>\n<div popover></div>')).toContainEqual({
       featureId: 'html-popover',
       location: {
-        url: 'https://example.test/',
+        url: URL,
         line: 2,
         column: 6,
         path: 'html:nth-of-type(1)>body:nth-of-type(1)>div:nth-of-type(1)',
@@ -105,13 +102,11 @@ describe('detectHtmlFeatures', () => {
   });
 
   it('omits line and column for an element the parser had to imply', () => {
-    const detections = detectHtmlFeatures(html('<p>hi</p>'), registry);
-
-    expect(detections).toEqual([
+    expect(detect('<p>hi</p>')).toEqual([
       {
         featureId: 'html-body',
         location: {
-          url: 'https://example.test/',
+          url: URL,
           path: 'html:nth-of-type(1)>body:nth-of-type(1)',
         },
       },
@@ -122,13 +117,8 @@ describe('detectHtmlFeatures', () => {
     expect(featureIds('text<!-- popover -->more')).toEqual(['html-body']);
   });
 
-  it('addresses each occurrence by its position in the tree', () => {
-    const detections = detectHtmlFeatures(
-      html('<div><dialog></dialog></div><div><dialog></dialog></div>'),
-      registry,
-    );
-
-    expect(detections
+  it('addresses each occurrence by the path it was walked to', () => {
+    expect(detect('<div><dialog></dialog></div><div><dialog></dialog></div>')
       .filter((detection) => {
         return detection.featureId === 'html-dialog';
       })
@@ -138,17 +128,6 @@ describe('detectHtmlFeatures', () => {
       'html:nth-of-type(1)>body:nth-of-type(1)>div:nth-of-type(1)>dialog:nth-of-type(1)',
       'html:nth-of-type(1)>body:nth-of-type(1)>div:nth-of-type(2)>dialog:nth-of-type(1)',
     ]);
-  });
-
-  it('marks the shadow boundary so shadow and light content cannot collide', () => {
-    const detections = detectHtmlFeatures(
-      html('<div><template shadowrootmode="open"><dialog></dialog></template></div>'),
-      registry,
-    );
-
-    expect(detections.find((detection) => {
-      return detection.featureId === 'html-dialog';
-    })?.location.path).toContain('::shadow>dialog:nth-of-type(1)');
   });
 
   it('ignores detectors whose syntax is not an attribute selector', () => {

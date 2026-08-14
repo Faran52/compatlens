@@ -8,7 +8,8 @@
 - Test data, fakes and global setup live in `__mocks__/`, split by domain and
   published through its barrel. Import them as `@mocks`; never inline a copy.
 - Use Playwright only for built-panel layout, theme, keyboard, and responsive
-  behavior that unit tests cannot verify reliably.
+  behavior that unit tests cannot verify reliably, and for the injected page
+  expressions, whose behaviour depends on a real CSSOM and a real fetch.
 
 ## Standard
 

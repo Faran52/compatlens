@@ -11,6 +11,11 @@ export default defineConfig(({ mode }) => {
       solid(),
     ],
     resolve: { tsconfigPaths: true },
+    // The worker is emitted by its own rollup pass, which hashes unless it is told the same rule.
+    worker: {
+      format: 'es',
+      rollupOptions: { output: { entryFileNames: 'assets/[name].js' } },
+    },
     // Relative asset URLs: the panel and devtools pages load from chrome-extension://<id>/, and a
     // root-absolute src would break the moment either page moves out of the archive root.
     base: './',

@@ -42,7 +42,7 @@ export const statusLineFor = (report: SessionReport): string => {
   return [
     'watching',
     counted(report.routes.length, 'route'),
-    `${String(report.resources.parsed)} of ${String(report.resources.total)} read`,
-    `${counted(report.coverage.mappedDetections, 'feature')} matched`,
+    `${String(report.resources.parsed.length)} of ${String(report.resources.seen.length)} read`,
+    `${counted(report.coverage.matched.length, 'feature')} matched`,
   ].join(' · ');
 };

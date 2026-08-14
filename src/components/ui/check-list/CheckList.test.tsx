@@ -3,6 +3,7 @@ import {
   render,
   screen,
 } from '@solidjs/testing-library';
+import { createSignal } from 'solid-js';
 import {
   describe,
   expect,
@@ -12,7 +13,7 @@ import {
 
 import { CheckList } from './CheckList';
 
-import type { CheckListRow } from './utils/checkListUtils';
+import type { CheckListRow } from './CheckList';
 
 const row = (overrides: Partial<CheckListRow> = {}): CheckListRow => {
   return {
@@ -53,6 +54,12 @@ describe('CheckList', () => {
     expect(screen.getByText('Chrome').closest('label')?.getAttribute('data-active')).toBe('true');
   });
 
+  it('says what the number counts, since the column has no room to', () => {
+    renderList([row({ count: { value: 0, noun: 'findings at this severity' } })]);
+
+    expect(screen.getByText('0').getAttribute('title')).toBe('0 findings at this severity');
+  });
+
   it('keeps an inactive row listed and marks it as not being counted', () => {
     renderList([row({ active: false, checked: false })]);
 
@@ -89,5 +96,29 @@ describe('CheckList', () => {
     fireEvent.click(screen.getByRole('checkbox'));
 
     expect(onToggle).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps focus on the checkbox when activating it replaces its row data', () => {
+    const [rows, setRows] = createSignal<readonly CheckListRow[]>([]);
+    const onToggle = (): void => {
+      setRows([row({ checked: false, onToggle })]);
+    };
+
+    setRows([row({ onToggle })]);
+    render(() => {
+      return <CheckList heading="Chromium Engine" rows={rows()} />;
+    });
+
+    const checkbox = screen.getByRole('checkbox');
+
+    if (!(checkbox instanceof HTMLInputElement)) {
+      throw new Error('The checklist control is not a checkbox.');
+    }
+
+    checkbox.focus();
+    fireEvent.click(checkbox);
+
+    expect(screen.getByRole('checkbox')).toBe(checkbox);
+    expect(document.activeElement).toBe(checkbox);
   });
 });

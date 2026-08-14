@@ -25,11 +25,20 @@ const reportWith = (findings: readonly Finding[]): AnalysisReport => {
   return {
     findings,
     suggestions: [],
-    resources: { total: 1, parsed: 1, failed: 0 },
-    coverage: { mappedDetections: findings.length, registryFeatures: 34 },
+    resources: { seen: ['/a.css'], parsed: ['/a.css'] },
+    coverage: {
+      matched: findings.map((finding) => {
+        return finding.featureId;
+      }),
+      registryFeatures: 34,
+    },
     warnings: [],
     durationMs: 1,
   };
+};
+
+const sheet = (content: string): ResourceInput => {
+  return { kind: 'css', url: 'https://shop.example.test/app.css', content };
 };
 
 const sessionWith = (overrides: Partial<LiveSessionDependencies> = {}) => {
@@ -63,6 +72,132 @@ const sessionWith = (overrides: Partial<LiveSessionDependencies> = {}) => {
 
   return { session: createLiveSession(dependencies), dependencies };
 };
+
+describe('createLiveSession stylesheet reuse', () => {
+  const stylesheetOnly = (analyze: LiveSessionDependencies['analyze']) => {
+    return sessionWith({
+      analyze,
+      capture: () => {
+        return Promise.resolve({
+          route: 'https://shop.example.test/products',
+          resources: [sheet('.a { color: red; }')],
+          warnings: [],
+        });
+      },
+    });
+  };
+
+  it('parses a stylesheet once, however many drains hand it back unchanged', async () => {
+    const analyze = vi.fn(() => {
+      return Promise.resolve(reportWith([blockedFindingFixture]));
+    });
+    const { session } = stylesheetOnly(analyze);
+
+    await session.tick();
+    await session.tick();
+    await session.tick();
+
+    expect(analyze).toHaveBeenCalledTimes(1);
+  });
+
+  it('parses it again as soon as the page rewrites it', async () => {
+    const analyze = vi.fn(() => {
+      return Promise.resolve(reportWith([blockedFindingFixture]));
+    });
+    const bodies = ['.a { color: red; }', '.a { color: red; }', '.a { color: blue; }'];
+    let drain = 0;
+    const { session } = sessionWith({
+      analyze,
+      capture: () => {
+        const content = bodies[drain] ?? '';
+
+        drain += 1;
+
+        return Promise.resolve({
+          route: 'https://shop.example.test/products',
+          resources: [sheet(content)],
+          warnings: [],
+        });
+      },
+    });
+
+    await session.tick();
+    await session.tick();
+    await session.tick();
+
+    expect(analyze).toHaveBeenCalledTimes(2);
+  });
+
+  it('judges every stylesheet again when the target changes', async () => {
+    const analyze = vi.fn(() => {
+      return Promise.resolve(reportWith([blockedFindingFixture]));
+    });
+    const { session } = stylesheetOnly(analyze);
+
+    await session.tick();
+    await session.reset();
+    await session.tick();
+
+    expect(analyze).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries a stylesheet whose analysis failed rather than retiring it', async () => {
+    let calls = 0;
+    const analyze = vi.fn(() => {
+      calls += 1;
+
+      return calls === 1
+        ? Promise.reject(new Error('worker died'))
+        : Promise.resolve(reportWith([blockedFindingFixture]));
+    });
+    const { session } = stylesheetOnly(analyze);
+
+    await session.tick();
+
+    expect((await session.tick()).occurrences).toHaveLength(1);
+    expect(analyze).toHaveBeenCalledTimes(2);
+  });
+
+  it('analyses an unchanged body again once the map it names has caught up', async () => {
+    const analyze = vi.fn(() => {
+      return Promise.resolve(reportWith([blockedFindingFixture]));
+    });
+    const body = '.a { color: red; }';
+    const maps: (string | undefined)[] = [undefined, '{"version":3,"sources":["a.scss"]}'];
+    let drain = 0;
+    const { session } = sessionWith({
+      analyze,
+      capture: () => {
+        const sourceMap = maps[drain];
+
+        drain += 1;
+
+        return Promise.resolve({
+          route: 'https://shop.example.test/products',
+          resources: [sourceMap === undefined
+            ? sheet(body)
+            : { ...sheet(body), sourceMap }],
+          warnings: [],
+        });
+      },
+    });
+
+    await session.tick();
+    await session.tick();
+
+    expect(analyze).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps the findings a skipped drain would have re-reported', async () => {
+    const { session } = stylesheetOnly(() => {
+      return Promise.resolve(reportWith([blockedFindingFixture]));
+    });
+
+    await session.tick();
+
+    expect((await session.tick()).occurrences).toHaveLength(1);
+  });
+});
 
 describe('createLiveSession', () => {
   it('starts empty before anything has been observed', () => {

@@ -16,6 +16,16 @@ describe('stripQuery', () => {
       .toBe('https://shop.example.test/a.css');
   });
 
+  it('keeps a source map scheme whole, having no origin to rebuild the address from', () => {
+    expect(stripQuery('webpack://app/./src/_buttons.scss?v=3'))
+      .toBe('webpack://app/./src/_buttons.scss');
+  });
+
+  it('keeps a file url whole for the same reason', () => {
+    expect(stripQuery('file:///Users/dev/app/src/_buttons.scss'))
+      .toBe('file:///Users/dev/app/src/_buttons.scss');
+  });
+
   it('keeps a url that carries neither', () => {
     expect(stripQuery('https://shop.example.test/a.css')).toBe('https://shop.example.test/a.css');
   });
@@ -65,5 +75,13 @@ describe('locationLabelFor', () => {
   it('names the file alone when the finding came from the rendered dom', () => {
     expect(locationLabelFor({ url: 'https://shop.example.test/assets/app.css' }))
       .toBe('app.css');
+  });
+
+  it('names the file a source map resolved rather than the one that was served', () => {
+    expect(locationLabelFor({
+      url: 'https://shop.example.test/assets/app.css',
+      line: 1200,
+      origin: { url: 'https://shop.example.test/src/_buttons.scss', line: 42, column: 3 },
+    })).toBe('_buttons.scss:42');
   });
 });

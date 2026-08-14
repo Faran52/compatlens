@@ -1,7 +1,21 @@
-@import "tailwindcss";
+/* source(none): class names live only in components, so a catalog or fixture string that merely
+   looks like one is never emitted. Auto-detection scans the whole repo, including e2e fixtures. */
+@import "tailwindcss" source(none);
+@source "../components";
+@source not "../components/**/*.test.{ts,tsx}";
 
-/* Our theme is an attribute, not a media query: system, light and dark all resolve to data-theme. */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+/* Dark means an explicit data-theme, or the OS preference while none is set: the tokens' own pair. */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme]), :root:not([data-theme]) *) {
+      @slot;
+    }
+  }
+}
 
 /* inline, so bg-canvas emits var(--canvas) and keeps following the theme instead of freezing it. */
 @theme inline {

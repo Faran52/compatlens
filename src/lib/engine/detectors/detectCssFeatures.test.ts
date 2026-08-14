@@ -1,3 +1,4 @@
+import postcss from 'postcss';
 import {
   describe,
   expect,
@@ -35,10 +36,10 @@ const entry = (id: string, kind: DetectorKind, syntax: string): FeatureRegistryE
 
 const registry: readonly FeatureRegistryEntry[] = [
   entry('css-scope', 'css-at-rule', 'scope'),
-  entry('css-has', 'css-selector', ':has('),
+  entry('css-has', 'css-selector', ':has()'),
   entry('css-nesting', 'css-selector', '&'),
   entry('css-anchor-name', 'css-property', 'anchor-name'),
-  entry('css-oklch', 'css-value', 'oklch('),
+  entry('css-oklch', 'css-value', 'oklch()'),
   entry('css-subgrid', 'css-value', 'subgrid'),
   entry('html-dialog', 'html-element', 'dialog'),
 ];
@@ -117,5 +118,39 @@ describe('detectCssFeatures', () => {
     expect(() => {
       return detectCssFeatures(css('.a { color: }}}'), registry);
     }).toThrow();
+  });
+
+  it('points a finding at the file the stylesheet was compiled from', () => {
+    const source = '.a {\n  anchor-name: --pin;\n}\n';
+    const map = postcss.parse(source, { from: 'app.scss' })
+      .toResult({ map: { annotation: false, inline: false }, to: 'app.css' })
+      .map.toString();
+    const resource: ResourceInput = { ...css(source), sourceMap: map };
+
+    expect(detectCssFeatures(resource, registry)[0]?.location.origin).toStrictEqual({
+      url: 'https://example.test/app.scss',
+      line: 2,
+      column: 3,
+    });
+  });
+
+  it('reads a map the stylesheet carries in its own text, as an injected style block does', () => {
+    const source = '.a {\n  anchor-name: --pin;\n}\n';
+    const map = postcss.parse(source, { from: 'app.scss' })
+      .toResult({ map: { annotation: false, inline: false }, to: 'app.css' })
+      .map.toString();
+    const annotated = `${source}/*# sourceMappingURL=data:application/json;base64,${btoa(map)} */`;
+
+    expect(detectCssFeatures(css(annotated), registry)[0]?.location.origin).toStrictEqual({
+      url: 'https://example.test/app.scss',
+      line: 2,
+      column: 3,
+    });
+  });
+
+  it('leaves the served position alone when the stylesheet declares no map', () => {
+    const found = detectCssFeatures(css('.a { anchor-name: --pin; }'), registry);
+
+    expect(found[0]?.location.origin).toBeUndefined();
   });
 });

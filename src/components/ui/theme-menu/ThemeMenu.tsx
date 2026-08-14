@@ -1,14 +1,17 @@
 import { For } from 'solid-js';
 
-import { isThemeMode, THEME_MODES } from './utils/themeUtils';
+import { isThemeMode } from './utils/themeUtils';
 
 import type { JSX } from 'solid-js';
-import type { ThemeMode } from './utils/themeUtils';
+
+export type ThemeMode = 'system' | 'light' | 'dark';
 
 interface ThemeMenuProps {
   mode: ThemeMode;
   onChange: (mode: ThemeMode) => void;
 }
+
+const THEME_MODES: readonly ThemeMode[] = ['system', 'light', 'dark'];
 
 const LABELS: Readonly<Record<ThemeMode, string>> = {
   system: 'System',

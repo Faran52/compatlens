@@ -50,9 +50,9 @@ const unsupportedEverywhere = {
 };
 
 const registry: readonly FeatureRegistryEntry[] = [
-  entry('css-has', 'css-selector', ':has(', 'breaks', unsupportedEverywhere),
+  entry('css-has', 'css-selector', ':has()', 'breaks', unsupportedEverywhere),
   entry('css-backdrop-filter', 'css-property', 'backdrop-filter', 'degrades', unsupportedEverywhere),
-  entry('css-oklch', 'css-value', 'oklch(', 'breaks', unsupportedEverywhere),
+  entry('css-oklch', 'css-value', 'oklch()', 'breaks', unsupportedEverywhere),
   entry('css-timeline', 'css-property', 'scroll-timeline-name', 'breaks', {}),
   entry('html-dialog', 'html-element', 'dialog', 'breaks', unsupportedEverywhere),
   entry('html-body', 'html-element', 'body', 'breaks', unsupportedEverywhere),
@@ -75,7 +75,7 @@ const modernRule: ModernizationRule = {
 const unusableRule: ModernizationRule = {
   id: 'legacy-webkit-any',
   kind: 'css-selector',
-  syntax: ':-webkit-any(',
+  syntax: ':-webkit-any()',
   replacementId: 'css-has',
   advice: 'Use :is() instead.',
 };
@@ -182,7 +182,7 @@ describe('analyzeResources', () => {
     ]);
 
     expect(report.findings).toEqual([]);
-    expect(report.coverage.mappedDetections).toBe(1);
+    expect(report.coverage.matched).toEqual(['css-subgrid']);
   });
 
   it('reports one finding for the same feature at the same location twice', () => {
@@ -192,7 +192,7 @@ describe('analyzeResources', () => {
     ]);
 
     expect(report.findings).toHaveLength(1);
-    expect(report.coverage.mappedDetections).toBe(1);
+    expect(report.coverage.matched).toEqual(['css-backdrop-filter']);
   });
 
   it('keeps findings from other resources when one fails to parse', () => {
@@ -205,9 +205,8 @@ describe('analyzeResources', () => {
       return finding.featureId;
     })).toEqual(['css-has']);
     expect(report.resources).toEqual({
-      total: 2,
-      parsed: 1,
-      failed: 1,
+      seen: ['https://example.test/broken.css', 'https://example.test/good.css'],
+      parsed: ['https://example.test/good.css'],
     });
     expect(report.warnings[0]).toContain('Could not parse https://example.test/broken.css');
   });
@@ -324,7 +323,7 @@ describe('analyzeResources', () => {
     expect(report.findings.map((finding) => {
       return finding.featureId;
     })).toEqual(['html-body', 'html-dialog']);
-    expect(report.resources.failed).toBe(0);
+    expect(report.resources.parsed).toEqual(['https://example.test/']);
   });
 
   it('records which view of the document each finding came from', () => {
@@ -479,11 +478,7 @@ describe('analyzeResources', () => {
 
     expect(report.durationMs).toBe(42);
     expect(report.coverage.registryFeatures).toBe(7);
-    expect(report.resources).toEqual({
-      total: 0,
-      parsed: 0,
-      failed: 0,
-    });
+    expect(report.resources).toEqual({ seen: [], parsed: [] });
   });
 });
 
@@ -526,7 +521,7 @@ describe('analyzeResources modernization', () => {
     );
 
     expect(report.findings).toEqual([]);
-    expect(report.coverage.mappedDetections).toBe(0);
+    expect(report.coverage.matched).toEqual([]);
   });
 
   it('reports each occurrence of the same legacy syntax separately', () => {

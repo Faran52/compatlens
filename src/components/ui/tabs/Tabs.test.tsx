@@ -58,6 +58,13 @@ describe('Tabs', () => {
       .toBe('findings-panel');
   });
 
+  it('leaves the inactive tab pointing at no panel', () => {
+    renderTabs();
+
+    expect(screen.getByRole('tab', { name: /Modernise/u }).getAttribute('aria-controls'))
+      .toBeNull();
+  });
+
   it('keeps only the active tab in the page tab order', () => {
     renderTabs('modernise');
 

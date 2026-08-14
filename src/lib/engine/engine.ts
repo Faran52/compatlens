@@ -2,6 +2,7 @@ import { RISK_ORDER } from './constants';
 import { detectCssFeatures } from './detectors/detectCssFeatures';
 import { detectHtmlFeatures } from './detectors/detectHtmlFeatures';
 import { extractInlineStyles, type InlineStyle } from './detectors/extractInlineStyles';
+import { type PositionedElement, walkElements } from './detectors/walkElements';
 import { resolveModernization } from './utils/modernizationUtils';
 import { resolveSupport } from './utils/supportUtils';
 import { stripQuery } from './utils/urlUtils';
@@ -48,7 +49,7 @@ interface DetectionResult {
 interface ResourceOutcome {
   findings: Finding[];
   suggestions: Suggestion[];
-  mapped: number;
+  matched: string[];
 }
 
 // parse5 gives no position for an implied element; sort it to the start of the resource.
@@ -141,12 +142,13 @@ const rebase = (line: number | undefined, style: InlineStyle): number => {
 };
 
 const inlineStyleDetections = (
+  elements: readonly PositionedElement[],
   resource: ResourceInput,
   definitions: readonly SyntaxDefinition[],
 ): DetectedFeature[] => {
   const detections: DetectedFeature[] = [];
 
-  for (const style of extractInlineStyles(resource)) {
+  for (const style of extractInlineStyles(elements)) {
     try {
       const found = detectCssFeatures(
         { kind: 'css', url: resource.url, content: style.content },
@@ -181,9 +183,11 @@ const detect = (
     return detectCssFeatures(resource, definitions);
   }
 
+  const elements = walkElements(resource.content);
+
   return [
-    ...detectHtmlFeatures(resource, definitions),
-    ...inlineStyleDetections(resource, definitions),
+    ...detectHtmlFeatures(elements, resource.url, definitions),
+    ...inlineStyleDetections(elements, resource, definitions),
   ];
 };
 
@@ -229,7 +233,7 @@ const collectFromResource = ( // throws when the resource does not parse; the ca
 ): ResourceOutcome => {
   const detections = detect(resource, definitions);
   const view = resource.view ?? 'source';
-  const outcome: ResourceOutcome = { findings: [], suggestions: [], mapped: 0 };
+  const outcome: ResourceOutcome = { findings: [], suggestions: [], matched: [] };
 
   for (const detection of detections) {
     const located: DetectedFeature = {
@@ -247,7 +251,7 @@ const collectFromResource = ( // throws when the resource does not parse; the ca
     const result = resolveDetection(located, context);
 
     if (result.mapped) {
-      outcome.mapped += 1;
+      outcome.matched.push(located.featureId);
     }
 
     if (result.finding !== null) {
@@ -284,21 +288,25 @@ export const analyzeResources = (input: AnalyzeResourcesInput): AnalysisReport =
   const findings: Finding[] = [];
   const suggestions: Suggestion[] = [];
   const seen = new Set<string>();
-  let parsed = 0;
-  let failed = 0;
-  let mappedDetections = 0;
+  const seenResources = new Set<string>();
+  const parsed = new Set<string>();
+  const matched = new Set<string>();
 
   for (const resource of input.resources) {
+    seenResources.add(resource.url);
+
     try {
       const outcome = collectFromResource(resource, definitions, context, seen);
 
-      parsed += 1;
-      mappedDetections += outcome.mapped;
+      parsed.add(resource.url);
       findings.push(...outcome.findings);
       suggestions.push(...outcome.suggestions);
+
+      for (const featureId of outcome.matched) {
+        matched.add(featureId);
+      }
     }
     catch (error) {
-      failed += 1;
       warnings.push(describeParseFailure(resource, error));
     }
   }
@@ -313,12 +321,11 @@ export const analyzeResources = (input: AnalyzeResourcesInput): AnalysisReport =
     findings: reported,
     suggestions: advised,
     resources: {
-      total: input.resources.length,
-      parsed,
-      failed,
+      seen: [...seenResources],
+      parsed: [...parsed],
     },
     coverage: {
-      mappedDetections,
+      matched: [...matched],
       registryFeatures: input.registry.length,
     },
     warnings,

@@ -13,13 +13,20 @@ import {
 
 import type { SessionReport } from '@engine';
 
+const SEEN: readonly string[] = ['/a.css', '/b.css', '/c.css'];
+
+const MATCHED: readonly string[] = Array.from({ length: 30 }, (_, index) => {
+  return `feature-${String(index)}`;
+});
+
 const report = (fields: Partial<SessionReport>): SessionReport => {
   return {
     occurrences: [],
     suggestions: [],
+    route: '',
     routes: [],
-    resources: { total: 0, parsed: 0, failed: 0 },
-    coverage: { mappedDetections: 0, registryFeatures: 0 },
+    resources: { seen: [], parsed: [] },
+    coverage: { matched: [], registryFeatures: 0 },
     warnings: [],
     watching: true,
     capped: false,
@@ -35,16 +42,16 @@ describe('statusLineFor', () => {
   it('counts a single route and a single feature in the singular', () => {
     expect(statusLineFor(report({
       routes: ['/'],
-      resources: { total: 1, parsed: 1, failed: 0 },
-      coverage: { mappedDetections: 1, registryFeatures: 40 },
+      resources: { seen: ['/a.css'], parsed: ['/a.css'] },
+      coverage: { matched: ['css-has'], registryFeatures: 40 },
     }))).toBe('watching · 1 route · 1 of 1 read · 1 feature matched');
   });
 
   it('counts several of each in the plural', () => {
     expect(statusLineFor(report({
       routes: ['/', '/orders'],
-      resources: { total: 3, parsed: 2, failed: 1 },
-      coverage: { mappedDetections: 30, registryFeatures: 40 },
+      resources: { seen: SEEN, parsed: SEEN.slice(0, 2) },
+      coverage: { matched: MATCHED, registryFeatures: 40 },
     }))).toBe('watching · 2 routes · 2 of 3 read · 30 features matched');
   });
 

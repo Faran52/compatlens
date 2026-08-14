@@ -198,6 +198,10 @@ describe('drainPageObserver', () => {
     ['a stylesheet with no text', { ...batch, stylesheets: [{ url: 'https://x.test/a.css' }] }],
     ['a stylesheet url that is not a string', { ...batch, stylesheets: [{ url: 7, text: '.a {}' }] }],
     ['a stylesheet text that is not a string', { ...batch, stylesheets: [{ url: 'https://x.test/a.css', text: 7 }] }],
+    ['a stylesheet map that is not a string', {
+      ...batch,
+      stylesheets: [{ url: 'https://x.test/a.css', text: '.a {}', map: 7 }],
+    }],
   ])('rejects %s', async (_label: string, evalResult: unknown) => {
     const { api } = chromeFixture({ evalResult });
 

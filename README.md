@@ -3,7 +3,10 @@
 A DevTools panel for Chrome and Firefox that watches the page you are inspecting and reports
 cross-browser compatibility risks in its HTML and CSS. Nothing leaves your machine.
 
-![The findings grid, dark](docs/media/readme-panel-dark.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/media/readme-panel-dark.png">
+  <img alt="The findings grid" src="docs/media/readme-panel-light.png">
+</picture>
 
 Regenerate the images with `pnpm screenshots`. They render the panel over the fixture page in
 `e2e/fixtures`, so every version in them comes from browser-compat-data rather than from a mockup.
@@ -39,6 +42,17 @@ A second tab, **Modernise**, lists legacy CSS worth replacing. Seven rules ship 
 appears when its modern replacement already passes on every browser in your target, so taking the
 advice can never introduce a new finding.
 
+**Export .md** in the top bar downloads the whole report as Markdown: every finding with its file and
+line, the browsers it fails on, the fallback to use, and the modernisation list. It is written to be
+handed to a coding agent as the brief for a fix, so it carries the targeted browser versions and
+every warning rather than only the findings.
+
+Where a stylesheet ships a source map, findings name the file it was written in rather than the built
+one, in the grid and in the export alike. A map written into the stylesheet as a `data:` comment is
+read from the text, which is how a development build of styled-components or emotion ships one; a
+separate `.map` file is fetched from the page's own context. The served position is kept behind the
+resolved one, so a stale map shows up as a disagreement rather than quietly replacing the truth.
+
 ### Targets
 
 Pick one of three presets from the top bar. Changing it re-judges the whole page.
@@ -57,11 +71,14 @@ Explorer at 13.
 
 ### Browsers
 
-The left rail lists fourteen slots, grouped by rendering engine:
+The left rail lists fourteen slots, grouped by rendering engine. Below 720px, which is where a panel
+docked to the side of the window usually sits, the rail is replaced by a ☰ button that opens the same
+severity and browser filters in a modal drawer. It closes on Escape, on a backdrop click, and by
+itself when the panel is widened past 720px, handing focus back to whichever control replaced it.
 
 | Group | Slots |
 | --- | --- |
-| Chromium Engine | Chrome, Edge, Opera, Chrome Android, Opera Android, Samsung Internet, WebView Android |
+| Chromium Engine | Chrome, Edge, Opera, Chrome Android, Opera Android, Samsung Browser, WebView Android |
 | Gecko Engine | Firefox, Firefox for Android |
 | WebKit Engine | Safari, Safari on iOS, WebView on iOS |
 | Legacy Engine | Internet Explorer, Edge Legacy |
@@ -174,10 +191,11 @@ code imports the generated registry only, never the upstream packages.
 ## Privacy and permissions
 
 Neither manifest requests permissions. Not `storage`, no host permissions, no `<all_urls>`. What
-they declare is a manifest version, a name, a version, a description, a devtools page and four
-icons, and the Firefox one adds a `browser_specific_settings` block holding the add-on id and the
-minimum Firefox version. `pnpm package` fails the build if a `permissions` or `host_permissions`
-key ever appears in either.
+they declare is a manifest version, a name, a version, a description, a devtools page, four icons
+and the oldest browser the panel's own stylesheet runs on, which is Chrome 111 and Firefox 128; the
+Firefox one carries that in the `browser_specific_settings` block that also holds the add-on id.
+`pnpm package` fails the build if a `permissions` or `host_permissions` key ever appears in either,
+or if the Chrome floor goes missing.
 
 Nothing is persisted. Your theme, target and filters live in memory while the panel is open and are
 gone when you close it.
@@ -190,7 +208,7 @@ gone when you close it.
 src/
   components/
     features/          live-panel, with partials/ and utils/ beside it.
-    ui/                Domain-free primitives, one kebab-case folder each.
+    ui/                Reusable components, one kebab-case folder each; some are domain-typed.
   lib/
     engine/            Framework-free analysis. detectors/ holds the parse5 and PostCSS matching.
     compat-data/       Curated detectors, modernisation rules, the generated registry, scripts/ to write it.
@@ -215,6 +233,13 @@ the worker, `model` is pure state, `components` only present. The ambient `chrom
 in exactly two files, `Main.tsx` and `devtoolsMain.ts`, and everything below them takes a narrow
 `ChromeDevToolsFacade` instead.
 
+Three places can hold a helper, and the signature decides which. `src/utils` takes anything with no
+domain type in it, which is why `cx`, `toggleIn` and `playExitAnimation` sit there. A `utils/` folder
+beside a component takes real logic, a branch or a loop or a comparator, bound to that one component
+or feature. Types and literal constants stay in the component file with the props interface they
+describe: they carry no condition, so nothing is hidden by the coverage exclusion. A file named
+`*Utils.ts` that turns out to declare only types is in the wrong place.
+
 ## Development
 
 ```bash
@@ -226,13 +251,14 @@ pnpm icons          # re-render the PNG icons from icon.svg
 pnpm package        # validate both manifests and build the Chrome and Firefox archives
 ```
 
-Coverage thresholds are 100% for lines, branches, functions and statements. Solid components and
-bootstrap entries are excluded and listed with their reasons in `vitest.config.ts`; every condition a
-component renders lives in a `*Utils` module that is covered. Anything a test writes to stderr fails
-the run.
+Coverage thresholds are 100% for lines, branches, functions and statements. Solid components,
+bootstrap entries, barrels, type declarations and the generated registry are excluded in
+`vitest.config.ts`, each with its reason beside it; every condition a component renders lives in a
+`*Utils` module that is covered. Anything a test writes to stderr fails the run.
 
 The Playwright suite serves `preview.html` from a preview build rather than loading the extension, so
-it stays about layout, theme and keyboard behaviour. The fixture host cannot reach a production
+it stays about layout, theme and keyboard behaviour, and it drives the injected observer expressions
+against a real page for the parts happy-dom cannot model. The fixture host cannot reach a production
 build: it is not an input outside `--mode preview`, and `pnpm package` greps the output for it anyway.
 
 ## Screenshots
@@ -253,6 +279,14 @@ Standards, the commands that gate a change, and what will get one rejected are i
 ## Limitations
 
 - JavaScript is not analysed. Loaded HTML and CSS only.
+- Only elements as they are added are read. The observer watches `childList` and walks added nodes,
+  so script that sets `inert`, `popover` or `loading` on an element already on the page produces no
+  finding until that element is inserted again.
+- An element added and removed inside one 750 ms drain is never serialised, because the drain only
+  keeps what is still connected. Unlike the 2000-element overflow, that is not counted or warned
+  about.
+- A `style="..."` attribute is never parsed as CSS. Only `<style>` blocks are lifted out, and the
+  HTML detectors read attribute names rather than their values.
 - HTML line numbers are offsets into the mutation fragment they were found in, not positions in a
   file. Inline `<style>` findings are CSS but carry the same caveat.
 - The served HTML is never read, so nothing is checked against the bytes your server sent. Against
@@ -267,6 +301,15 @@ Standards, the commands that gate a change, and what will get one rejected are i
   fetch, which is the fallback path. Chrome's `getResources()` still returns its body, so nothing is
   lost there. On a browser without that API the sheet is unreadable, its findings are missing, and
   the panel warns rather than reporting a clean page.
+- Source maps resolve CSS positions only. HTML has none. A stylesheet that names a map the page
+  cannot fetch, or fetches but cannot parse, keeps its served position and warns either way, so a
+  poorer position is never passed off as a resolved one; the export also keeps telling you to enable
+  source maps for those findings.
+- CSS-in-JS is read only where the rules are in the page. styled-components and emotion put their
+  CSS in a `<style>` element's text in development, and that is scanned like any other inline block.
+  A production build of either inserts its rules through `CSSStyleSheet.insertRule` instead, which
+  leaves the element empty, so the rules exist only in the CSSOM and nothing reaches the scanner.
+  Those sheets are counted as unreadable and the panel warns, rather than reporting a clean page.
 - An occurrence is keyed by feature, URL and tree path, so two elements at the same position in
   structurally identical markup are one finding. That is what makes a component used fifty times
   report once, and it is also why two different shadow roots with the same shape collapse together.

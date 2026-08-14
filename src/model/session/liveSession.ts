@@ -1,3 +1,4 @@
+import { createAnalysedResources } from './analysedResources';
 import { emptySession, mergeBatch } from './session';
 
 import type {
@@ -49,6 +50,7 @@ const noteFailure = (warnings: readonly string[], error: unknown): readonly stri
 // No timer of its own: the caller owns the cadence, which keeps this testable and framework-free.
 export const createLiveSession = (dependencies: LiveSessionDependencies): LiveSession => {
   let session = emptySession();
+  const analysed = createAnalysedResources();
 
   return {
     start: async () => {
@@ -72,7 +74,9 @@ export const createLiveSession = (dependencies: LiveSessionDependencies): LiveSe
         return session;
       }
 
-      if (capture.resources.length === 0 && capture.warnings.length === 0) {
+      const resources = analysed.unanalysed(capture.resources);
+
+      if (resources.length === 0 && capture.warnings.length === 0) {
         return session;
       }
 
@@ -80,7 +84,7 @@ export const createLiveSession = (dependencies: LiveSessionDependencies): LiveSe
 
       try {
         report = await dependencies.analyze({
-          resources: capture.resources,
+          resources,
           registry: dependencies.registry,
           rules: dependencies.rules,
           target: dependencies.target(),
@@ -93,6 +97,7 @@ export const createLiveSession = (dependencies: LiveSessionDependencies): LiveSe
         return session;
       }
 
+      analysed.record(resources);
       session = mergeBatch(session, report, {
         route: capture.route,
         at: dependencies.timestamp(),
@@ -106,6 +111,8 @@ export const createLiveSession = (dependencies: LiveSessionDependencies): LiveSe
     // Changing the target invalidates every verdict, but the page is unchanged and still watched.
     reset: async () => {
       session = { ...emptySession(), watching: session.watching, routes: session.routes };
+      // Every verdict is gone, so a stylesheet that has not changed still has to be judged again.
+      analysed.forget();
 
       try {
         // Without this the queue stays empty on a settled page and no finding ever returns.

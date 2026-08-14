@@ -41,7 +41,6 @@
     "paths": {
       "@compat-data": ["./src/lib/compat-data/index.ts"],
       "@engine": ["./src/lib/engine/index.ts"],
-      "@engine/*": ["./src/lib/engine/*"],
       "@extension": ["./src/extension/index.ts"],
       "@mocks": ["./__mocks__/index.ts"],
       "@model": ["./src/model/index.ts"],

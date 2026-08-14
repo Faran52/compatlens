@@ -1,10 +1,5 @@
 export interface DevToolsPanelsApi {
-  create(
-    title: string,
-    iconPath: string,
-    pagePath: string,
-    callback: (panel: object) => void,
-  ): void;
+  create(title: string, iconPath: string, pagePath: string, callback: () => void): void;
 }
 
 export const registerCompatLensPanel = (api: DevToolsPanelsApi): Promise<void> => {

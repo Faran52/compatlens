@@ -10,9 +10,10 @@ import type { ChromeDevToolsFacade } from './chromeTypes';
 export interface ObservedStylesheet {
   url: string;
   text: string;
+  map?: string; // absent where the sheet named no map, empty where it named one that could not be read
 }
 
-export interface ObservedBatch {
+interface ObservedBatch {
   route: string;
   fragments: readonly string[];
   dropped: number;
@@ -20,20 +21,70 @@ export interface ObservedBatch {
 }
 
 // Some browsers hand DevTools no stylesheet body at all, so the page fetches its own from cache.
-const COLLECT_STYLESHEETS = `for (const sheet of document.styleSheets) {
-    const href = sheet.href; // an inline <style> has none, and its text already arrives as markup
+const COLLECT_STYLESHEETS = `let sheetIndex = 0;
 
-    if (!href || href.startsWith('data:') || state.attempted.has(href)) {
+  for (const sheet of document.styleSheets) {
+    const href = sheet.href; // an inline <style> has none, and its text usually arrives as markup
+
+    sheetIndex += 1;
+
+    if (!href) {
+      const owner = sheet.ownerNode;
+      let inserted = 0;
+
+      // A production CSS-in-JS build inserts its rules, leaving the element empty and markup blind.
+      try { inserted = sheet.cssRules.length; } catch { inserted = 0; }
+
+      if (inserted > 0 && owner && owner.textContent.trim() === '') {
+        state.sheets.set('inserted-stylesheet:' + sheetIndex, { text: '', map: undefined });
+      }
+
+      continue;
+    }
+
+    if (href.startsWith('data:') || state.attempted.has(href)) {
       continue;
     }
 
     // A body this fetch cannot reach, such as a cross-origin sheet, never becomes reachable later.
     state.attempted.add(href);
 
-    fetch(href).then((response) => response.text()).then((text) => {
-      state.sheets.set(href, text);
-      // An empty body is what the panel counts as unreadable, so a refusal must not stay silent.
-    }).catch(() => { state.sheets.set(href, ''); });
+    // fetch only rejects on a network error, and a 404 body is an error page rather than a file.
+    const readBody = (response) => {
+      return response.ok ? response.text() : Promise.reject(new Error('not ok'));
+    };
+
+    fetch(href).then(readBody).then((text) => {
+      const marker = 'sourceMappingURL=';
+      const at = text.lastIndexOf(marker);
+      const close = at === -1 ? -1 : text.indexOf('*/', at);
+      const declared = at === -1
+        ? ''
+        : text.slice(at + marker.length, close === -1 ? text.length : close).trim();
+      let mapUrl = '';
+      let named = false;
+
+      // An inline map already travels inside the text, so only a separate file needs fetching.
+      if (declared !== '' && declared.slice(0, 5) !== 'data:') {
+        named = true;
+
+        try { mapUrl = new URL(declared, href).href; } catch { mapUrl = ''; }
+      }
+
+      if (mapUrl === '') {
+        state.sheets.set(href, { text: text, map: named ? '' : undefined });
+
+        return undefined;
+      }
+
+      // The sheet waits for its map, because a drain hands each sheet over exactly once.
+      return fetch(mapUrl).then(readBody).then((map) => {
+        state.sheets.set(href, { text: text, map: map });
+      }).catch(() => {
+        state.sheets.set(href, { text: text, map: '' });
+      });
+    // An empty body is what the panel counts as unreadable, so a refusal must not stay silent.
+    }).catch(() => { state.sheets.set(href, { text: '', map: undefined }); });
   }`;
 
 // Installed once per document. eval is request/response, so the page stashes and the panel drains.
@@ -117,7 +168,11 @@ export const OBSERVER_DRAIN_EXPRESSION = `(() => {
   ${COLLECT_STYLESHEETS}
 
   // Draining the map hands each fetched sheet over once, however many drains it survives.
-  const stylesheets = [...state.sheets].map(([url, text]) => ({ url, text }));
+  const stylesheets = [...state.sheets].map(([url, sheet]) => ({
+    url,
+    text: sheet.text,
+    map: sheet.map,
+  }));
 
   state.sheets.clear();
 
@@ -169,6 +224,11 @@ const isObservedStylesheet = (value: unknown): value is ObservedStylesheet => {
   }
 
   if (!('url' in value) || !('text' in value)) {
+    return false;
+  }
+
+  // eval drops an undefined property on the way back, but an in-process caller still carries it.
+  if ('map' in value && value.map !== undefined && typeof value.map !== 'string') {
     return false;
   }
 

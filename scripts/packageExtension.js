@@ -181,6 +181,11 @@ const checkManifest = (target, manifest) => {
     fail('firefox manifest needs browser_specific_settings.gecko.id');
   }
 
+  // Without a floor an older Chrome installs the panel and renders colours its css cannot mix.
+  if (target.name === 'chrome' && manifest.minimum_chrome_version === undefined) {
+    fail('chrome manifest must declare minimum_chrome_version');
+  }
+
   // Chrome rejects the whole package rather than ignoring a key it does not know.
   if (target.name === 'chrome' && manifest.browser_specific_settings !== undefined) {
     fail('chrome manifest must not carry browser_specific_settings');

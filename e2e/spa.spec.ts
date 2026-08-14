@@ -11,6 +11,7 @@ import type { Page } from '@playwright/test';
 interface Sheet {
   url: string;
   text: string;
+  map?: string;
 }
 
 interface Batch {
@@ -146,6 +147,101 @@ test.describe('watching a single-page app', () => {
     expect(collected).toEqual([
       { url: new URL('/late.css', page.url()).href, text: '.late { text-wrap: balance; }' },
     ]);
+  });
+
+  test('fetches the map a stylesheet names, so a finding can point at the file it was written in', async ({ page }) => {
+    const map = '{"version":3,"sources":["app.scss"],"names":[],"mappings":"AAAA"}';
+
+    await page.route('**/mapped.css', async (route) => {
+      await route.fulfill({
+        body: '.mapped { text-wrap: balance; }\n/*# sourceMappingURL=mapped.css.map */',
+        contentType: 'text/css',
+      });
+    });
+    await page.route('**/mapped.css.map', async (route) => {
+      await route.fulfill({ body: map, contentType: 'application/json' });
+    });
+    await openSpa(page);
+    await install(page);
+    await page.evaluate(() => {
+      const link = document.createElement('link');
+
+      link.rel = 'stylesheet';
+      link.href = '/mapped.css';
+
+      document.head.append(link);
+    });
+
+    const collected: Sheet[] = [];
+
+    await expect.poll(async () => {
+      collected.push(...(await drain(page)).stylesheets);
+
+      return collected.length;
+    }).toBeGreaterThan(0);
+
+    expect(collected[0]?.map).toBe(map);
+  });
+
+  test('marks a named map it could not fetch, so the panel can say the position is poorer', async ({ page }) => {
+    await page.route('**/broken.css', async (route) => {
+      await route.fulfill({
+        body: '.broken { text-wrap: balance; }\n/*# sourceMappingURL=broken.css.map */',
+        contentType: 'text/css',
+      });
+    });
+    await page.route('**/broken.css.map', async (route) => {
+      await route.fulfill({ status: 404, body: 'not here' });
+    });
+    await openSpa(page);
+    await install(page);
+    await page.evaluate(() => {
+      const link = document.createElement('link');
+
+      link.rel = 'stylesheet';
+      link.href = '/broken.css';
+
+      document.head.append(link);
+    });
+
+    const collected: Sheet[] = [];
+
+    await expect.poll(async () => {
+      collected.push(...(await drain(page)).stylesheets);
+
+      return collected.length;
+    }).toBeGreaterThan(0);
+
+    expect(collected[0]?.text).not.toBe('');
+    expect(collected[0]?.map).toBe('');
+  });
+
+  test('records rules inserted without markup, rather than reading the page as clean', async ({ page }) => {
+    await openSpa(page);
+    await install(page);
+    await page.evaluate(() => {
+      const written = document.createElement('style');
+
+      written.textContent = '.written { anchor-name: --pin; }';
+      document.head.append(written);
+
+      const inserted = document.createElement('style');
+
+      document.head.append(inserted);
+      inserted.sheet?.insertRule('.inserted { anchor-name: --pin; }', 0);
+    });
+
+    // One collection pass sees both blocks, so the first drain that reports any is already final.
+    const collected: Sheet[] = [];
+
+    await expect.poll(async () => {
+      collected.push(...(await drain(page)).stylesheets);
+
+      return collected.length;
+    }).toBeGreaterThan(0);
+
+    expect(collected).toHaveLength(1);
+    expect(collected[0]?.text).toBe('');
   });
 
   test('counts what it could not keep up with rather than dropping it', async ({ page }) => {

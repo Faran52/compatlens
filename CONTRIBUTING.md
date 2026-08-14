@@ -2,8 +2,9 @@
 
 Thanks for looking. CompatLens is a DevTools panel for Chrome and Firefox with no backend and no
 accounts. The extension itself makes no request of its own: the only network traffic it causes is
-the inspected page re-fetching stylesheets it had already loaded, because some browsers hand
-DevTools no stylesheet body at all. Contributions need to keep it that way.
+the inspected page fetching a stylesheet it had already loaded, because some browsers hand DevTools
+no stylesheet body at all, and the source map that stylesheet names in its own comment.
+Contributions need to keep it that way.
 
 ## Getting set up
 

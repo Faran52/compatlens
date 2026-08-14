@@ -12,7 +12,7 @@ import {
 
 import { DataGrid } from './DataGrid';
 
-import type { DataGridProps, GridColumn } from './utils/dataGridUtils';
+import type { DataGridProps, GridColumn } from './DataGrid';
 
 interface Row {
   id: string;
@@ -55,8 +55,12 @@ const renderGrid = (overrides: Partial<DataGridProps<Row>> = {}) => {
     totalCell: (column) => {
       return `0 of ${String(column.key.length)}`;
     },
-    leadCell: (row, selected) => {
-      return <td data-selected={selected ? 'true' : 'false'}>{row.name}</td>;
+    leadCell: (row) => {
+      return (
+        <td data-selected={props.selected(row) ? 'true' : 'false'}>
+          <button type="button">{row.name}</button>
+        </td>
+      );
     },
     cell: (row, column) => {
       return <td>{`${row.id}-${column.key}`}</td>;
@@ -127,7 +131,7 @@ describe('DataGrid', () => {
   it('spans a section heading across every column and the lead', () => {
     renderGrid();
 
-    expect(screen.getByText('Breaks (2)').getAttribute('colspan')).toBe('4');
+    expect(screen.getByText('Breaks (2)').closest('td')?.getAttribute('colspan')).toBe('4');
   });
 
   it('picks a row that was clicked', () => {
@@ -138,40 +142,23 @@ describe('DataGrid', () => {
     expect(props.onSelect).toHaveBeenCalledTimes(1);
   });
 
-  it.each([['Enter'], [' ']])('picks a row with %s from the keyboard', (key: string) => {
+  it('picks a row once when the button its lead cell carries is pressed', () => {
     const props = renderGrid();
 
-    fireEvent.keyDown(rowOf('beta'), { key });
+    fireEvent.click(screen.getByRole('button', { name: 'beta' }));
 
     expect(props.onSelect).toHaveBeenCalledTimes(1);
   });
 
-  it('leaves other keys to whatever the grid is scrolling inside', () => {
-    const props = renderGrid();
-
-    fireEvent.keyDown(rowOf('beta'), { key: 'ArrowDown' });
-
-    expect(props.onSelect).not.toHaveBeenCalled();
-  });
-
-  it('tells the lead cell whether its row is selected', () => {
+  it('marks the selected row without claiming a selection table rows cannot carry', () => {
     renderGrid({
       selected: (row) => {
         return row.id === 'b';
       },
     });
 
-    expect(screen.getByText('beta').getAttribute('data-selected')).toBe('true');
-    expect(screen.getByText('alpha').getAttribute('data-selected')).toBe('false');
-  });
-
-  it('marks the selected row for assistive technology', () => {
-    renderGrid({
-      selected: (row) => {
-        return row.id === 'b';
-      },
-    });
-
-    expect(rowOf('beta').getAttribute('aria-selected')).toBe('true');
+    expect(rowOf('beta').getAttribute('data-selected')).toBe('true');
+    expect(rowOf('alpha').getAttribute('data-selected')).toBe('false');
+    expect(rowOf('beta').getAttribute('aria-selected')).toBeNull();
   });
 });

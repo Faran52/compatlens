@@ -1,8 +1,6 @@
-export type ThemeMode = 'system' | 'light' | 'dark';
+import type { ThemeMode } from '../ThemeMenu';
 
 type ResolvedTheme = 'light' | 'dark';
-
-export const THEME_MODES: readonly ThemeMode[] = ['system', 'light', 'dark'];
 
 export const isThemeMode = (value: string): value is ThemeMode => {
   return value === 'system' || value === 'light' || value === 'dark';

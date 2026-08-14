@@ -1,21 +1,22 @@
 import {
   CellLegend,
-  CheckList,
   Tabs,
   TargetPicker,
   ThemeMenu,
 } from '@components/ui';
-import { cx } from '@utils';
+import {
+  createRailResize,
+  cx,
+  hostOf,
+} from '@utils';
 import { For, Show } from 'solid-js';
 
-import { FilterRail } from './partials/FilterRail';
+import { FilterBody } from './partials/FilterBody';
 import { FindingDrawer } from './partials/FindingDrawer';
 import { ModerniseList } from './partials/ModerniseList';
 import { NarrowFilterMenu } from './partials/NarrowFilterMenu';
 import { SupportGrid } from './partials/SupportGrid';
 import { severityCheckRowsFor } from './utils/gridUtils';
-import { hostFromRoutes } from './utils/hostUtils';
-import { createRailResize } from './utils/railResizeUtils';
 import {
   emptyMessageFor,
   isConnecting,
@@ -40,29 +41,41 @@ import type { ColumnInput } from './utils/columnUtils';
 import type { RailInput } from './utils/railUtils';
 import type { SortKey } from './utils/sortUtils';
 
+interface BrowserNaming {
+  labelOf: (slot: BrowserSlotId) => string;
+  retiredOf: (slot: BrowserSlotId) => string | undefined;
+}
+
+interface FilterControl {
+  rail: RailInput;
+  risks: ReadonlySet<RiskLevel>;
+  onToggleRisk: (risk: RiskLevel) => void;
+  allChecked: boolean;
+  onToggleAll: () => void;
+  onToggleSlot: (slot: BrowserSlotId) => void;
+  width: number;
+  onResize: (width: number) => void;
+}
+
+interface ThemeControl {
+  mode: ThemeMode;
+  onChange: (mode: ThemeMode) => void;
+}
+
 interface LivePanelProps {
   host: string;
   session: SessionReport;
   tab: PanelTab;
-  selected: Occurrence | null;
-  columns: ColumnInput;
-  rail: RailInput;
-  labelOf: (slot: BrowserSlotId) => string;
-  shortOf: (slot: BrowserSlotId) => string;
-  retiredOf: (slot: BrowserSlotId) => string | undefined;
   onSelectTab: (tab: PanelTab) => void;
+  selected: Occurrence | null;
   onSelectFinding: (occurrence: Occurrence | null) => void;
-  onToggleSlot: (slot: BrowserSlotId) => void;
-  allChecked: boolean;
-  onToggleAll: () => void;
-  railWidth: number;
-  onResizeRail: (width: number) => void;
-  risks: ReadonlySet<RiskLevel>;
-  onToggleRisk: (risk: RiskLevel) => void;
+  columns: ColumnInput;
   sort: SortKey;
   onSort: (key: SortKey) => void;
-  theme: ThemeMode;
-  onChangeTheme: (mode: ThemeMode) => void;
+  onExport: () => void;
+  browsers: BrowserNaming;
+  filters: FilterControl;
+  theme: ThemeControl;
   target: TargetControl;
 }
 
@@ -70,12 +83,13 @@ interface LivePanelProps {
 const NUDGE_KEYS: Readonly<Record<string, number>> = { ArrowLeft: -1, ArrowRight: 1 };
 
 export const LivePanel = (props: LivePanelProps): JSX.Element => {
+  let desktopFilterControl: HTMLDivElement | undefined;
   const resize = createRailResize({
     width: () => {
-      return props.railWidth;
+      return props.filters.width;
     },
     onResize: (width) => {
-      props.onResizeRail(width);
+      props.filters.onResize(width);
     },
   });
 
@@ -101,8 +115,8 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
   const severityRows = () => {
     return severityCheckRowsFor({
       occurrences: props.session.occurrences,
-      onToggle: props.onToggleRisk,
-      risks: props.risks,
+      onToggle: props.filters.onToggleRisk,
+      risks: props.filters.risks,
     });
   };
 
@@ -110,17 +124,20 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
     <div class="flex h-full flex-col bg-canvas">
       <div class="flex flex-wrap items-center gap-2 border-b border-hairline bg-surface p-2">
         <NarrowFilterMenu
-          allChecked={props.allChecked}
+          allChecked={props.filters.allChecked}
           busy={isConnecting(props.session)}
-          labelOf={props.labelOf}
-          onToggleAll={props.onToggleAll}
-          onToggleSlot={props.onToggleSlot}
-          rail={props.rail}
-          retiredOf={props.retiredOf}
+          labelOf={props.browsers.labelOf}
+          onToggleAll={props.filters.onToggleAll}
+          onToggleSlot={props.filters.onToggleSlot}
+          onWideClose={() => {
+            desktopFilterControl?.focus();
+          }}
+          rail={props.filters.rail}
+          retiredOf={props.browsers.retiredOf}
           severityRows={severityRows()}
         />
         <span class="font-semibold">CompatLens</span>
-        <span class="font-mono text-xs text-text-muted">{hostFromRoutes(props.session.routes, props.host)}</span>
+        <span class="font-mono text-xs text-text-muted">{hostOf(props.session.route, props.host)}</span>
         <TargetPicker
           browsers={props.target.browsers}
           onChangePreset={props.target.onChangePreset}
@@ -129,36 +146,39 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
           years={props.target.years}
         />
         <span class="ml-auto text-xs text-text-muted">{statusLineFor(props.session)}</span>
-        <ThemeMenu mode={props.theme} onChange={props.onChangeTheme} />
+        <button
+          class={cx(
+            'cursor-pointer rounded border border-hairline bg-surface-raised px-2',
+            'hover:border-accent focus-visible:border-accent',
+          )}
+          disabled={isConnecting(props.session)}
+          onClick={props.onExport}
+          type="button"
+        >
+          Export .md
+        </button>
+        <ThemeMenu mode={props.theme.mode} onChange={props.theme.onChange} />
       </div>
       <div class="flex min-h-0 flex-1">
         <div
-          aria-busy={isConnecting(props.session)}
-          class={cx(
-            'hidden shrink-0 flex-col overflow-auto bg-surface min-[720px]:flex',
-            isConnecting(props.session) ? 'pointer-events-none opacity-50' : '',
-          )}
-          style={{ width: `${String(props.railWidth)}px` }}
+          class="hidden shrink-0 flex-col overflow-auto bg-surface min-[720px]:flex"
+          style={{ width: `${String(props.filters.width)}px` }}
         >
-          <div class="p-2">
-            <CheckList
-              heading="Severity"
-              rows={severityRows()}
-            />
-          </div>
-          <FilterRail
-            labelOf={props.labelOf}
-            allChecked={props.allChecked}
-            onToggleAll={props.onToggleAll}
-            onToggleSlot={props.onToggleSlot}
-            rail={props.rail}
-            retiredOf={props.retiredOf}
+          <FilterBody
+            allChecked={props.filters.allChecked}
+            busy={isConnecting(props.session)}
+            labelOf={props.browsers.labelOf}
+            onToggleAll={props.filters.onToggleAll}
+            onToggleSlot={props.filters.onToggleSlot}
+            rail={props.filters.rail}
+            retiredOf={props.browsers.retiredOf}
+            severityRows={severityRows()}
           />
         </div>
         <div
           aria-label="Resize the browser list"
           aria-orientation="vertical"
-          aria-valuenow={props.railWidth}
+          aria-valuenow={props.filters.width}
           class={cx(
             'hidden w-1 shrink-0 cursor-col-resize bg-hairline min-[720px]:block',
             'hover:bg-accent focus-visible:bg-accent',
@@ -176,6 +196,7 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
           onPointerUp={() => {
             resize.stop();
           }}
+          ref={desktopFilterControl}
           role="separator"
           tabindex="0"
         />
@@ -224,18 +245,25 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
                 <div class="min-h-0 min-w-0 flex-1 overflow-auto">
                   <SupportGrid
                     columns={props.columns}
+                    labelOf={props.browsers.labelOf}
                     occurrences={props.session.occurrences}
                     onSelect={props.onSelectFinding}
                     onSort={props.onSort}
-                    risks={props.risks}
+                    risks={props.filters.risks}
                     selected={props.selected}
-                    shortOf={props.shortOf}
                     sort={props.sort}
                   />
                 </div>
                 <CellLegend />
               </div>
             </Show>
+            <FindingDrawer
+              labelOf={props.browsers.labelOf}
+              occurrence={props.selected}
+              onClose={() => {
+                props.onSelectFinding(null);
+              }}
+            />
           </Show>
           <Show when={props.session.warnings.length > 0}>
             <ul class="border-t border-hairline p-2 text-xs text-breaks">
@@ -251,13 +279,6 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
               The finding limit was reached, so later changes were not recorded.
             </p>
           </Show>
-          <FindingDrawer
-            labelOf={props.labelOf}
-            occurrence={props.selected}
-            onClose={() => {
-              props.onSelectFinding(null);
-            }}
-          />
         </div>
       </div>
     </div>

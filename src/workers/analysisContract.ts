@@ -17,14 +17,14 @@ export interface AnalysisRequest {
   warnings: readonly string[];
 }
 
-export interface AnalysisSuccess {
+interface AnalysisSuccess {
   kind: 'result';
   version: number;
   id: number;
   report: AnalysisReport;
 }
 
-export interface AnalysisFailure {
+interface AnalysisFailure {
   kind: 'error';
   version: number;
   id: number;
@@ -37,7 +37,6 @@ export type AnalysisResponse = AnalysisSuccess | AnalysisFailure;
 export interface WorkerLike {
   postMessage(message: AnalysisRequest): void;
   addEventListener(type: 'message', listener: (event: { data: unknown }) => void): void;
-  terminate(): void;
 }
 
 // Versioned so a stale worker left over from a reload is ignored rather than misread.

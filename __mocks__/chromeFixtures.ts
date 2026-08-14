@@ -26,8 +26,6 @@ export interface ChromeFixture {
   api: ChromeDevToolsFacade;
   navigate: (url: string) => void;
   listenerCount: () => number;
-  beginLoad: () => void;
-  completeLoad: () => void;
 }
 
 // Chrome base64s the UTF-8 bytes, which btoa alone does not do outside latin1.
@@ -52,7 +50,6 @@ export const harEntry = (fixture: StylesheetFixture): HarEntry => {
 
 export const chromeFixture = (input: ChromeFixtureInput = {}): ChromeFixture => {
   const listeners = new Set<(url: string) => void>();
-  let loaded = true;
   const url = input.url ?? 'https://example.test/';
   const html = input.html ?? '<html><body></body></html>';
   const entries = (input.stylesheets ?? []).map(harEntry);
@@ -68,13 +65,7 @@ export const chromeFixture = (input: ChromeFixtureInput = {}): ChromeFixture => 
   );
 
   const inspectedWindow: DevToolsInspectedWindow = {
-    eval: (expression, callback) => {
-      if (expression === 'document.readyState') {
-        callback(loaded ? 'complete' : 'loading');
-
-        return;
-      }
-
+    eval: (_expression, callback) => {
       if (input.exception) {
         callback(undefined, input.exception);
 
@@ -117,12 +108,6 @@ export const chromeFixture = (input: ChromeFixtureInput = {}): ChromeFixture => 
     },
     listenerCount: () => {
       return listeners.size;
-    },
-    beginLoad: () => {
-      loaded = false;
-    },
-    completeLoad: () => {
-      loaded = true;
     },
   };
 };

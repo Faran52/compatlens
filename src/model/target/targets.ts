@@ -5,7 +5,7 @@ import { BASELINE_2022_TARGET } from './constants';
 
 import type { AgeWindowYears, BrowserTarget } from '@engine';
 
-export type AgeWindowPreset = `age-${AgeWindowYears}`;
+type AgeWindowPreset = `age-${AgeWindowYears}`;
 
 export type TargetPreset = 'widely' | 'baseline-2022' | AgeWindowPreset;
 

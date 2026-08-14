@@ -4,17 +4,7 @@ import {
   it,
 } from 'vitest';
 
-import {
-  isThemeMode,
-  resolveTheme,
-  THEME_MODES,
-} from './themeUtils';
-
-describe('THEME_MODES', () => {
-  it('offers exactly system, light and dark', () => {
-    expect(THEME_MODES).toEqual(['system', 'light', 'dark']);
-  });
-});
+import { isThemeMode, resolveTheme } from './themeUtils';
 
 describe('isThemeMode', () => {
   it.each([['system'], ['light'], ['dark']])('accepts %s', (value: string) => {

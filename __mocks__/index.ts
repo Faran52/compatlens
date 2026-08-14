@@ -1,6 +1,3 @@
-export type { ChromeFixture,
-  ChromeFixtureInput,
-  StylesheetFixture } from './chromeFixtures';
 export {
   base64Body,
   chromeFixture,

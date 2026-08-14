@@ -3,7 +3,7 @@ import { BROWSER_SLOT_IDS, RISK_ORDER } from '@engine';
 
 import type { BrowserSlotId, Occurrence } from '@engine';
 
-export type SortKey = 'severity' | 'feature' | 'source' | BrowserSlotId;
+export type SortKey = 'severity' | 'feature' | BrowserSlotId;
 
 const isBrowserSlot = (value: string): value is BrowserSlotId => {
   return BROWSER_SLOT_IDS.some((slot) => {
@@ -35,11 +35,6 @@ export const compareOccurrences = (key: SortKey) => {
   return (left: Occurrence, right: Occurrence): number => {
     if (key === 'feature') {
       return left.name.localeCompare(right.name);
-    }
-
-    if (key === 'source') {
-      return left.location.url.localeCompare(right.location.url)
-        || (left.location.line ?? 0) - (right.location.line ?? 0);
     }
 
     if (key === 'severity') {

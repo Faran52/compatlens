@@ -12,7 +12,7 @@ import {
 
 import { ThemeMenu } from './ThemeMenu';
 
-import type { ThemeMode } from './utils/themeUtils';
+import type { ThemeMode } from './ThemeMenu';
 
 const renderMenu = (mode: ThemeMode = 'system', onChange = vi.fn()) => {
   render(() => {

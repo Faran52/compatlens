@@ -10,7 +10,7 @@ import {
   restartObserving,
   startObserving,
 } from './collectLive';
-import { UNREADABLE_STYLESHEET_WARNING } from './constants';
+import { UNREADABLE_SOURCE_MAP_WARNING, UNREADABLE_STYLESHEET_WARNING } from './constants';
 
 import type { ObservedStylesheet } from './devtools-api';
 
@@ -79,6 +79,117 @@ describe('captureLive', () => {
     })).toEqual([
       { kind: 'css', url: 'https://shop.example.test/app.css', content: '.a { color: red; }' },
     ]);
+  });
+
+  it('carries a fetched source map to the stylesheet it belongs to', async () => {
+    const map = '{"version":3,"sources":["app.scss"],"names":[],"mappings":"AAAA"}';
+    const { api } = chromeFixture({
+      evalResult: batch(['<li>one</li>'], 0, [{
+        url: 'https://shop.example.test/app.css',
+        text: '.a { color: red; }',
+        map,
+      }]),
+    });
+    const capture = await captureLive(api);
+
+    expect(capture.resources.filter((resource) => {
+      return resource.kind === 'css';
+    })).toEqual([
+      {
+        kind: 'css',
+        url: 'https://shop.example.test/app.css',
+        content: '.a { color: red; }',
+        sourceMap: map,
+      },
+    ]);
+  });
+
+  it('warns when a stylesheet named a source map it could not read', async () => {
+    const { api } = chromeFixture({
+      evalResult: batch(['<li>one</li>'], 0, [{
+        url: 'https://shop.example.test/app.css',
+        text: '.a { color: red; }',
+        map: '',
+      }]),
+    });
+    const capture = await captureLive(api);
+
+    expect(capture.warnings).toContain(UNREADABLE_SOURCE_MAP_WARNING);
+  });
+
+  it('keeps a stylesheet whose map could not be read, since only the position is poorer', async () => {
+    const { api } = chromeFixture({
+      evalResult: batch(['<li>one</li>'], 0, [{
+        url: 'https://shop.example.test/app.css',
+        text: '.a { color: red; }',
+        map: '',
+      }]),
+    });
+    const capture = await captureLive(api);
+
+    expect(capture.resources.filter((resource) => {
+      return resource.kind === 'css';
+    })).toEqual([
+      { kind: 'css', url: 'https://shop.example.test/app.css', content: '.a { color: red; }' },
+    ]);
+  });
+
+  it('warns for a sheet naming a map the page never reached, since devtools read the body', async () => {
+    const { api } = chromeFixture({
+      evalResult: batch(['<li>one</li>']),
+      stylesheets: [{
+        url: 'https://cdn.example.test/vendor.css',
+        content: '.a { color: red; }\n/*# sourceMappingURL=vendor.css.map */',
+        mimeType: 'text/css',
+      }],
+    });
+    const capture = await captureLive(api);
+
+    expect(capture.warnings).toContain(UNREADABLE_SOURCE_MAP_WARNING);
+  });
+
+  it('warns and drops a map that arrived whole but will not parse', async () => {
+    const { api } = chromeFixture({
+      evalResult: batch(['<li>one</li>'], 0, [{
+        url: 'https://shop.example.test/app.css',
+        text: '.a { color: red; }',
+        map: 'this is not a source map',
+      }]),
+    });
+    const capture = await captureLive(api);
+
+    expect(capture.warnings).toContain(UNREADABLE_SOURCE_MAP_WARNING);
+    expect(capture.resources.filter((resource) => {
+      return resource.kind === 'css';
+    })).toEqual([
+      { kind: 'css', url: 'https://shop.example.test/app.css', content: '.a { color: red; }' },
+    ]);
+  });
+
+  it('says nothing about a sheet whose map was written into its own text', async () => {
+    const { api } = chromeFixture({
+      evalResult: batch(['<li>one</li>']),
+      stylesheets: [{
+        url: 'https://shop.example.test/app.css',
+        content: '.a { color: red; }\n/*# sourceMappingURL=data:application/json;base64,e30= */',
+        mimeType: 'text/css',
+      }],
+    });
+    const capture = await captureLive(api);
+
+    expect(capture.warnings).not.toContain(UNREADABLE_SOURCE_MAP_WARNING);
+  });
+
+  it('says nothing about source maps when no stylesheet named one', async () => {
+    const { api } = chromeFixture({
+      evalResult: batch(['<li>one</li>'], 0, [{
+        url: 'https://shop.example.test/app.css',
+        text: '.a { color: red; }',
+      }]),
+    });
+    const capture = await captureLive(api);
+
+    expect(capture.warnings).not.toContain(UNREADABLE_SOURCE_MAP_WARNING);
   });
 
   it('reads the stylesheets from the network log alone when there is no resource api', async () => {

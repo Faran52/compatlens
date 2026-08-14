@@ -1,6 +1,5 @@
-import { type DefaultTreeAdapterTypes, parse } from 'parse5';
-
-import type { ResourceInput } from '../types';
+import type { DefaultTreeAdapterTypes } from 'parse5';
+import type { PositionedElement } from './walkElements';
 
 export interface InlineStyle {
   content: string;
@@ -18,52 +17,25 @@ const styleTextOf = (element: DefaultTreeAdapterTypes.Element): string => {
     .join('');
 };
 
-// Same nth-of-type scheme the html detector walks, so a block and an element agree on where they are.
-const collect = (
-  nodes: readonly DefaultTreeAdapterTypes.ChildNode[],
-  found: InlineStyle[],
-  parentPath: string,
-): void => {
-  const seenTags = new Map<string, number>();
-
-  for (const node of nodes) {
-    if (!('tagName' in node)) {
-      continue;
+export const extractInlineStyles = (
+  elements: readonly PositionedElement[],
+): InlineStyle[] => {
+  return elements.flatMap((found) => {
+    if (found.element.tagName !== 'style') {
+      return [];
     }
 
-    const position = (seenTags.get(node.tagName) ?? 0) + 1;
+    const content = styleTextOf(found.element);
 
-    seenTags.set(node.tagName, position);
-
-    const path = `${parentPath}${parentPath === '' ? '' : '>'}`
-      + `${node.tagName}:nth-of-type(${String(position)})`;
-
-    if (node.tagName === 'style') {
-      const content = styleTextOf(node);
-
-      if (content.trim() !== '') {
-        found.push({
-          content,
-          /* v8 ignore next -- <style> is never implied, so it always has a start tag. */
-          startLine: node.sourceCodeLocation?.startTag?.endLine ?? 1,
-          path,
-        });
-      }
+    if (content.trim() === '') {
+      return [];
     }
 
-    if ('content' in node) {
-      collect(node.content.childNodes, found, `${path}::shadow`);
-    }
-
-    collect(node.childNodes, found, path);
-  }
-};
-
-export const extractInlineStyles = (resource: ResourceInput): InlineStyle[] => {
-  const document = parse(resource.content, { sourceCodeLocationInfo: true });
-  const found: InlineStyle[] = [];
-
-  collect(document.childNodes, found, '');
-
-  return found;
+    return [{
+      content,
+      /* v8 ignore next -- <style> is never implied, so it always has a start tag. */
+      startLine: found.element.sourceCodeLocation?.startTag?.endLine ?? 1,
+      path: found.path,
+    }];
+  });
 };

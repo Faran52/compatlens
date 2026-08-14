@@ -2,7 +2,9 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from '@solidjs/testing-library';
+import { createSignal } from 'solid-js';
 import {
   describe,
   expect,
@@ -20,6 +22,8 @@ interface MenuHandlers {
   onToggleAll: () => void;
   onToggleRisk: () => void;
   onToggleSlot: (slot: BrowserSlotId) => void;
+  onWideClose: () => void;
+  setBusy: (busy: boolean) => void;
 }
 
 const groupOf = (slot: BrowserSlotId): EngineGroup => {
@@ -45,11 +49,14 @@ const rail = (): RailInput => {
   };
 };
 
-const renderMenu = (busy = false): MenuHandlers => {
+const renderMenu = (initiallyBusy = false): MenuHandlers => {
+  const [busy, setBusy] = createSignal(initiallyBusy);
   const handlers: MenuHandlers = {
     onToggleAll: vi.fn(),
     onToggleRisk: vi.fn(),
     onToggleSlot: vi.fn(),
+    onWideClose: vi.fn(),
+    setBusy,
   };
   const severityRows: readonly CheckListRow[] = [
     {
@@ -70,12 +77,13 @@ const renderMenu = (busy = false): MenuHandlers => {
     return (
       <NarrowFilterMenu
         allChecked={false}
-        busy={busy}
+        busy={busy()}
         labelOf={(slot) => {
           return slot;
         }}
         onToggleAll={handlers.onToggleAll}
         onToggleSlot={handlers.onToggleSlot}
+        onWideClose={handlers.onWideClose}
         rail={rail()}
         retiredOf={() => {
           return undefined;
@@ -101,13 +109,22 @@ const openMenu = (): HTMLButtonElement => {
 };
 
 describe('NarrowFilterMenu', () => {
-  it('names the controlled menu and starts collapsed', () => {
+  it('starts collapsed, naming no menu while there is none to name', () => {
     renderMenu();
 
     const trigger = screen.getByRole('button', { name: 'Open filters' });
 
-    expect(trigger.getAttribute('aria-controls')).toBe('filter-menu');
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    expect(trigger.getAttribute('aria-controls')).toBeNull();
+  });
+
+  it('names the menu it controls once that menu is in the page', () => {
+    renderMenu();
+
+    const trigger = openMenu();
+
+    expect(trigger.getAttribute('aria-controls')).toBe('filter-menu');
+    expect(document.getElementById('filter-menu')).toBeInstanceOf(HTMLElement);
   });
 
   it('opens the named filter dialog and focuses its close control', () => {
@@ -121,16 +138,14 @@ describe('NarrowFilterMenu', () => {
     expect(document.activeElement).toBe(close);
   });
 
-  it('shows the existing severity and browser filter groups', () => {
+  it('shows the same severity and browser filters the rail does', () => {
     renderMenu();
     openMenu();
 
-    expect(screen.getByRole('heading', { name: 'Severity' })).toBeInstanceOf(HTMLElement);
-    expect(screen.getByRole('heading', { name: 'Browsers' })).toBeInstanceOf(HTMLElement);
-    expect(screen.getByRole('heading', { name: 'Chromium Engine' })).toBeInstanceOf(HTMLElement);
-    expect(screen.getByRole('heading', { name: 'Gecko Engine' })).toBeInstanceOf(HTMLElement);
-    expect(screen.getByRole('heading', { name: 'WebKit Engine' })).toBeInstanceOf(HTMLElement);
-    expect(screen.getByRole('heading', { name: 'Legacy Engine' })).toBeInstanceOf(HTMLElement);
+    const dialog = within(screen.getByRole('dialog', { name: 'Filters' }));
+
+    expect(dialog.getByRole('heading', { name: 'Severity' })).toBeInstanceOf(HTMLElement);
+    expect(dialog.getByRole('heading', { name: 'Browsers' })).toBeInstanceOf(HTMLElement);
   });
 
   it('uses the shared browser and bulk callbacks', () => {
@@ -196,13 +211,23 @@ describe('NarrowFilterMenu', () => {
     expect(document.activeElement).toBe(trigger);
   });
 
-  it('blocks opening and marks the filter content busy while connecting', () => {
+  it('blocks opening while connecting', () => {
     renderMenu(true);
 
     const trigger = screen.getByRole('button', { name: 'Open filters' });
 
     expect(trigger).toBeInstanceOf(HTMLButtonElement);
     expect(trigger.hasAttribute('disabled')).toBe(true);
+  });
+
+  it('marks the filter content busy when connecting starts under an open menu', () => {
+    const handlers = renderMenu();
+
+    openMenu();
+    expect(document.querySelector('[aria-busy="true"]')).toBeNull();
+
+    handlers.setBusy(true);
+
     expect(document.querySelector('[aria-busy="true"]')).toBeInstanceOf(HTMLElement);
   });
 });
