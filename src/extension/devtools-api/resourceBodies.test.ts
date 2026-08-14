@@ -4,7 +4,11 @@ import {
   it,
 } from 'vitest';
 
-import { base64Body, harEntry } from '@mocks';
+import {
+  base64Body,
+  first,
+  harEntry,
+} from '@mocks';
 
 import {
   readContent,
@@ -114,7 +118,7 @@ describe('stylesheetCandidates', () => {
         callback('.from-resource {}', 'text');
       },
     };
-    const [candidate] = stylesheetCandidates([resource], [sheet(url, 'text/css')]);
+    const candidate = first(stylesheetCandidates([resource], [sheet(url, 'text/css')]));
 
     await expect(readContent(candidate)).resolves.toBe('.from-resource {}');
   });

@@ -4,6 +4,8 @@ import {
   it,
 } from 'vitest';
 
+import { first } from '@mocks';
+
 import {
   type BcdFeature,
   type BrowserSupportStatement,
@@ -82,7 +84,7 @@ const generateOne = (
   status: WebFeatureStatus,
   definition: DetectorDefinition = hasDefinition,
 ) => {
-  return generateRegistry([definition], sourcesFor(feature, status))[0];
+  return first(generateRegistry([definition], sourcesFor(feature, status)));
 };
 
 describe('generateRegistry', () => {

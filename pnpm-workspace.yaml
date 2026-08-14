@@ -1,21 +1,23 @@
 allowBuilds:
   sharp: true
   unrs-resolver: true
+# A version-pinned entry goes stale the moment its dependency moves, and each family below publishes every part of
+# itself together under one version, so pinning one part without the rest never installs anyway. The glob names the
+# family and survives the next bump; a lone package still gets a pin.
 minimumReleaseAgeExclude:
-  - '@linteljs/eslint-config@1.1.3'
-  - '@linteljs/eslint-plugin@1.1.3'
-  - '@mdn/browser-compat-data@8.0.9'
-  - '@typescript-eslint/eslint-plugin@8.65.0'
-  - '@typescript-eslint/parser@8.65.0'
-  - '@typescript-eslint/project-service@8.65.0'
-  - '@typescript-eslint/scope-manager@8.65.0'
-  - '@typescript-eslint/tsconfig-utils@8.65.0'
-  - '@typescript-eslint/type-utils@8.65.0'
-  - '@typescript-eslint/types@8.65.0'
-  - '@typescript-eslint/types@8.66.0'
-  - '@typescript-eslint/typescript-estree@8.65.0'
-  - '@typescript-eslint/utils@8.65.0'
-  - '@typescript-eslint/visitor-keys@8.65.0'
-  - 'baseline-browser-mapping@2.11.12'
-  - 'typescript-eslint@8.65.0'
-  - 'web-features@3.34.3'
+  - '@commitlint/*'
+  - '@linteljs/*'
+  - '@typescript-eslint/*'
+  - typescript-eslint
+  - '@mdn/browser-compat-data'
+  - 'baseline-browser-mapping'
+  - 'web-features'
+
+# Two plugins stop their `eslint` peer range at 9 and both run: the solid layer loads its plugin's presets and names
+# `jsx-a11y` rules. Neither has a version declaring 10, so an allowance is the only lever. Scoped with `>` so it
+# reaches only the dependent named. `eslint-plugin-import` never runs; it arrives as an optional peer of the resolver.
+peerDependencyRules:
+  allowedVersions:
+    'eslint-plugin-import>eslint': '10'
+    'eslint-plugin-jsx-a11y>eslint': '10'
+    'eslint-plugin-solid>eslint': '10'

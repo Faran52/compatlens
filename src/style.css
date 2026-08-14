@@ -1,5 +1,6 @@
 /* Restrict class scanning so catalog and fixture strings never emit styles. */
-@import "tailwindcss" source(none);
+@import url("tailwindcss") source(none);
+
 @source "../components";
 @source not "../components/**/*.test.{ts,tsx}";
 
@@ -33,15 +34,12 @@
   --color-ok: var(--ok);
   --color-unverified: var(--unverified);
   --color-unverified-surface: var(--unverified-surface);
-
   --spacing-1: var(--space-1);
   --spacing-2: var(--space-2);
   --spacing-3: var(--space-3);
   --spacing-5: var(--space-5);
-
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
-
   --animate-reveal: reveal 140ms ease-out;
   --animate-filter-menu: filter-menu 260ms cubic-bezier(0.32, 0.72, 0, 1);
   --animate-sheet: sheet 260ms cubic-bezier(0.32, 0.72, 0, 1);

@@ -5,6 +5,8 @@ import {
   vi,
 } from 'vitest';
 
+import { at, first } from '@mocks';
+
 import { BROWSER_SLOT_IDS } from '@engine';
 
 import {
@@ -64,7 +66,7 @@ describe('slotCheckRowsFor', () => {
   });
 
   it('puts the pinned version beside the label, where it cannot squeeze it', () => {
-    const [chrome] = slotCheckRowsFor(checkInput(), 'Chromium Engine');
+    const chrome = first(slotCheckRowsFor(checkInput(), 'Chromium Engine'));
 
     expect(chrome.meta).toBe('≥ 121');
     expect(chrome.note).toBeUndefined();
@@ -87,7 +89,7 @@ describe('slotCheckRowsFor', () => {
   });
 
   it('says nothing about a browser that was never checked', () => {
-    const [, edge] = slotCheckRowsFor(checkInput(), 'Chromium Engine');
+    const edge = at(slotCheckRowsFor(checkInput(), 'Chromium Engine'), 1);
 
     expect(edge).toMatchObject({ checked: false, active: false });
     expect(edge.note).toBeUndefined();

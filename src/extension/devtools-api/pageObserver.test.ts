@@ -5,7 +5,7 @@ import {
   vi,
 } from 'vitest';
 
-import { chromeFixture } from '@mocks';
+import { apiThatRunsTheExpression, chromeFixture } from '@mocks';
 
 import {
   OBSERVER_ABANDONED_MS,
@@ -22,8 +22,6 @@ import {
   OBSERVER_RESEED_EXPRESSION,
   reseedPageObserver,
 } from './pageObserver';
-
-import type { ChromeDevToolsFacade } from './chromeTypes';
 
 interface ObserverState {
   pending: Set<Element>;
@@ -203,37 +201,13 @@ describe('drainPageObserver', () => {
       ...batch,
       stylesheets: [{ url: 'https://x.test/a.css', text: '.a {}', map: 7 }],
     }],
-  ])('rejects %s', async (_label: string, evalResult: unknown) => {
+  ])('rejects %s', async (_label: string, evalResult: boolean | object | string | null) => {
     const { api } = chromeFixture({ evalResult });
 
     await expect(drainPageObserver(api))
       .rejects.toThrow('The inspected page did not return an observation batch.');
   });
 });
-
-const apiThatRunsTheExpression: ChromeDevToolsFacade = {
-  inspectedWindow: {
-    eval: (expression, callback) => {
-      callback(new Function(`return ${expression}`)());
-    },
-    getResources: (callback) => {
-      callback([]);
-    },
-  },
-  network: {
-    getHAR: (callback) => {
-      callback({ entries: [] });
-    },
-    onNavigated: {
-      addListener: () => {
-        return undefined;
-      },
-      removeListener: () => {
-        return undefined;
-      },
-    },
-  },
-};
 
 const seed = (html: string): ObserverState => {
   document.body.innerHTML = html;

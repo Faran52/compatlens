@@ -28,23 +28,39 @@ export const ModerniseList = (props: ModerniseListProps): JSX.Element => {
         <For each={props.suggestions}>
           {(suggestion) => {
             return (
-              <div class="rounded p-2 hover:bg-surface-raised" data-rule={suggestion.ruleId}>
+              <div
+                class="
+                  rounded-sm p-2
+                  hover:bg-surface-raised
+                "
+                data-rule={suggestion.ruleId}
+              >
                 <div class="flex flex-wrap items-center gap-2">
-                  <code class="rounded bg-surface-raised px-1 font-mono text-xs">
+                  <code class="
+                    rounded-sm text-xs bg-surface-raised px-1 font-mono
+                  "
+                  >
                     {suggestion.syntax}
                   </code>
                   <span aria-hidden="true">→</span>
-                  <code class="rounded bg-surface-raised px-1 font-mono text-xs">
+                  <code class="
+                    rounded-sm text-xs bg-surface-raised px-1 font-mono
+                  "
+                  >
                     {suggestion.replacementSyntax}
                   </code>
-                  <span class="rounded-full bg-degrades-surface px-2 text-xs font-semibold text-degrades">
+                  <span class="
+                    text-xs font-semibold rounded-full bg-degrades-surface px-2
+                    text-degrades
+                  "
+                  >
                     safe
                   </span>
                   <span class="ml-auto font-mono text-[10px] text-text-muted">
                     {locationLabelFor(suggestion.location)}
                   </span>
                 </div>
-                <p class="mt-1 text-xs text-text-muted">
+                <p class="text-xs mt-1 text-text-muted">
                   {suggestion.advice}
                   <Show when={suggestion.baselineDate}>
                     {(date) => {

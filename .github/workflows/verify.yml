@@ -1,0 +1,51 @@
+# Everything past the gate. `ci.yml` is written by @linteljs/create and runs `pnpm check`, the same
+# gate that runs locally; this file holds the checks that are CompatLens's own and that no generated
+# workflow could know about. Split so a failure says which class broke, and so a release of the
+# standard can keep `ci.yml` current without flattening any of this.
+name: verify
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.19.0
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The registry is committed. Regenerating it must produce no diff, or the pinned datasets and
+      # the checked-in artifact have drifted apart.
+      - run: pnpm generate
+      - run: git diff --exit-code src/lib/compat-data/generatedRegistry.ts
+
+      - run: pnpm playwright install --with-deps chromium
+      - run: pnpm e2e
+
+      - run: pnpm package
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: compatlens-build
+          path: |
+            artifacts/*.zip
+            test-results/*.png
+          if-no-files-found: warn

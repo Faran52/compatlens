@@ -20,7 +20,10 @@ interface FilterBodyProps {
 
 export const FilterBody = (props: FilterBodyProps): JSX.Element => {
   return (
-    <div aria-busy={props.busy} class="aria-busy:pointer-events-none aria-busy:opacity-50">
+    <div
+      aria-busy={props.busy}
+      class="aria-busy:pointer-events-none aria-busy:opacity-50"
+    >
       <div class="p-2">
         <CheckList heading="Severity" rows={props.severityRows} />
       </div>

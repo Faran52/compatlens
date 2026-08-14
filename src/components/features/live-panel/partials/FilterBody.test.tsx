@@ -8,6 +8,8 @@ import {
   vi,
 } from 'vitest';
 
+import { at } from '@mocks';
+
 import { FilterBody } from './FilterBody';
 
 import type { CheckListRow } from '@components/ui';
@@ -67,8 +69,8 @@ describe('FilterBody', () => {
 
     const headings = screen.getAllByRole('heading');
 
-    expect(headings[0].textContent).toBe('Severity');
-    expect(headings[1].textContent).toBe('Browsers');
+    expect(at(headings, 0).textContent).toBe('Severity');
+    expect(at(headings, 1).textContent).toBe('Browsers');
   });
 
   it('lists the browsers it was handed', () => {

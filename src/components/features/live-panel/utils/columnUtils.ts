@@ -39,7 +39,7 @@ export const groupForSlot = (slot: BrowserSlotId, input: ColumnInput): EngineGro
   const runs = input.runs[input.bcdIdOf(slot)] ?? [];
   const version = input.target[slot];
   // Untargeted browsers still belong to the engine they ship today, not to whatever ran at zero.
-  const current = runs.length === 0 ? null : runs[runs.length - 1].engine;
+  const current = runs[runs.length - 1]?.engine ?? null;
   const engine = version === undefined ? current : engineAt(runs, version);
 
   return engine === null ? 'Legacy Engine' : ENGINE_GROUPS[engine];

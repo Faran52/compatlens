@@ -23,7 +23,10 @@ export const TargetPicker = (props: TargetPickerProps): JSX.Element => {
     <div class="flex flex-wrap items-center gap-2">
       <select
         aria-label="Compatibility target"
-        class="rounded border border-hairline bg-surface-raised px-2 py-1 text-text"
+        class="
+          rounded-sm border border-hairline bg-surface-raised px-2 py-1
+          text-text
+        "
         onChange={(event) => {
           if (isTargetPreset(event.currentTarget.value)) {
             props.onChangePreset(event.currentTarget.value);
@@ -36,13 +39,20 @@ export const TargetPicker = (props: TargetPickerProps): JSX.Element => {
         <option value={`age-${String(props.years)}`}>Browser age</option>
       </select>
       <Show when={isAgeWindow(props.preset)}>
-        <span class="inline-flex items-center rounded border border-hairline bg-surface-raised">
+        <span class="
+          rounded-sm inline-flex items-center border border-hairline
+          bg-surface-raised
+        "
+        >
           <For each={STEPS}>
             {(step) => {
               return (
                 <button
                   aria-label={step < 0 ? 'Fewer years' : 'More years'}
-                  class="w-7 cursor-pointer py-0.5 disabled:opacity-35"
+                  class="
+                    w-7 py-0.5 cursor-pointer
+                    disabled:opacity-35
+                  "
                   disabled={yearsAfterStep(props.years, step) === undefined}
                   onClick={() => {
                     const next = yearsAfterStep(props.years, step);

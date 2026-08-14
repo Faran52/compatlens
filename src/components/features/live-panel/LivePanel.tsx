@@ -4,6 +4,8 @@ import {
   createRailResize,
   cx,
   hostOf,
+  RAIL_MAX_WIDTH,
+  RAIL_MIN_WIDTH,
 } from '@utils';
 
 import {
@@ -124,7 +126,11 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
 
   return (
     <div class="flex h-full flex-col bg-canvas">
-      <div class="flex flex-wrap items-center gap-2 border-b border-hairline bg-surface p-2">
+      <div class="
+        flex flex-wrap items-center gap-2 border-b border-hairline bg-surface
+        p-2
+      "
+      >
         <NarrowFilterMenu
           allChecked={props.filters.allChecked}
           busy={isConnecting(props.session)}
@@ -139,7 +145,7 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
           severityRows={severityRows()}
         />
         <span class="font-semibold">CompatLens</span>
-        <span class="font-mono text-xs text-text-muted">{hostOf(props.session.route, props.host)}</span>
+        <span class="text-xs font-mono text-text-muted">{hostOf(props.session.route, props.host)}</span>
         <TargetPicker
           browsers={props.target.browsers}
           onChangePreset={props.target.onChangePreset}
@@ -147,11 +153,17 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
           preset={props.target.preset}
           years={props.target.years}
         />
-        <span class="ml-auto text-xs text-text-muted">{statusLineFor(props.session)}</span>
+        <span class="text-xs ml-auto text-text-muted">{statusLineFor(props.session)}</span>
         <button
           class={cx(
-            'cursor-pointer rounded border border-hairline bg-surface-raised px-2',
-            'hover:border-accent focus-visible:border-accent',
+            `
+              rounded-sm cursor-pointer border border-hairline bg-surface-raised
+              px-2
+            `,
+            `
+              hover:border-accent
+              focus-visible:border-accent
+            `,
           )}
           disabled={isConnecting(props.session)}
           onClick={() => {
@@ -163,9 +175,12 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
         </button>
         <ThemeMenu mode={props.theme.mode} onChange={props.theme.onChange} />
       </div>
-      <div class="flex min-h-0 flex-1">
+      <div class="min-h-0 flex flex-1">
         <div
-          class="hidden shrink-0 flex-col overflow-auto bg-surface min-[720px]:flex"
+          class="
+            hidden shrink-0 flex-col overflow-auto bg-surface
+            min-[720px]:flex
+          "
           style={{ width: `${String(props.filters.width)}px` }}
         >
           <FilterBody
@@ -182,10 +197,18 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
         <div
           aria-label="Resize the browser list"
           aria-orientation="vertical"
+          aria-valuemax={RAIL_MAX_WIDTH}
+          aria-valuemin={RAIL_MIN_WIDTH}
           aria-valuenow={props.filters.width}
           class={cx(
-            'hidden w-1 shrink-0 cursor-col-resize bg-hairline min-[720px]:block',
-            'hover:bg-accent focus-visible:bg-accent',
+            `
+              hidden w-1 shrink-0 cursor-col-resize bg-hairline
+              min-[720px]:block
+            `,
+            `
+              hover:bg-accent
+              focus-visible:bg-accent
+            `,
           )}
           onKeyDown={(event) => {
             resize.nudge(NUDGE_KEYS[event.key] ?? 0);
@@ -201,10 +224,10 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
             resize.stop();
           }}
           ref={desktopFilterControl}
-          role="separator"
+          role="slider"
           tabindex="0"
         />
-        <div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+        <div class="min-w-0 relative flex flex-1 flex-col overflow-hidden">
           <Tabs
             active={props.tab}
             onSelect={(id) => {
@@ -242,7 +265,7 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
             >
               <div
                 aria-labelledby="findings-tab"
-                class="flex min-h-0 min-w-0 flex-1 flex-col"
+                class="min-h-0 min-w-0 flex flex-1 flex-col"
                 id="findings-panel"
                 role="tabpanel"
               >
@@ -270,7 +293,7 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
             />
           </Show>
           <Show when={props.session.warnings.length > 0}>
-            <ul class="border-t border-hairline p-2 text-xs text-breaks">
+            <ul class="text-xs border-t border-hairline p-2 text-breaks">
               <For each={props.session.warnings}>
                 {(warning) => {
                   return <li data-warning="true">{warning}</li>;
@@ -279,7 +302,7 @@ export const LivePanel = (props: LivePanelProps): JSX.Element => {
             </ul>
           </Show>
           <Show when={props.session.capped}>
-            <p class="border-t border-hairline p-2 text-xs text-unverified">
+            <p class="text-xs border-t border-hairline p-2 text-unverified">
               The finding limit was reached, so later changes were not recorded.
             </p>
           </Show>

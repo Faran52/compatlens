@@ -29,11 +29,11 @@ export const FindingDrawer = (props: FindingDrawerProps): JSX.Element => {
             subtitle={`${occurrence().syntax} · ${locationLabelFor(occurrence().location)}`}
             title={occurrence().name}
           >
-            <div class="min-w-52 flex-1 rounded bg-surface-raised p-2">
+            <div class="min-w-52 rounded-sm flex-1 bg-surface-raised p-2">
               <b class="mb-1 block">What users see</b>
               {occurrence().fallback}
             </div>
-            <div class="min-w-52 flex-1 rounded bg-surface-raised p-2">
+            <div class="min-w-52 rounded-sm flex-1 bg-surface-raised p-2">
               <b class="mb-1 block">Support</b>
               <For each={occurrence().impacts}>
                 {(impact) => {
@@ -45,7 +45,7 @@ export const FindingDrawer = (props: FindingDrawerProps): JSX.Element => {
                 }}
               </For>
             </div>
-            <div class="min-w-52 flex-1 rounded bg-surface-raised p-2">
+            <div class="min-w-52 rounded-sm flex-1 bg-surface-raised p-2">
               <b class="mb-1 block">Reference</b>
               <a href={occurrence().mdnUrl} rel="noreferrer noopener" target="_blank">
                 MDN documentation

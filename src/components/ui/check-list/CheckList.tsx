@@ -13,10 +13,12 @@ export interface CheckListRow {
   label: string;
   checked: boolean;
   active: boolean;
-  count?: CheckListCount; // omitted where the grid already reports the same number
-  badge?: string;
-  meta?: string; // short enough to sit beside the label without squeezing it
-  note?: string; // a sentence, so it gets its own line rather than crushing the label
+  count?: CheckListCount | undefined; // omitted where the grid already reports the same number
+  // `| undefined` explicitly, because a builder passes the field through whether or not it has a value, and
+  // `exactOptionalPropertyTypes` tells those two cases apart.
+  badge?: string | undefined;
+  meta?: string | undefined; // short enough to sit beside the label without squeezing it
+  note?: string | undefined; // a sentence, so it gets its own line rather than crushing the label
   onToggle: () => void;
 }
 
@@ -33,15 +35,15 @@ const countTitleFor = (count: CheckListCount): string => {
 export const CheckList = (props: CheckListProps): JSX.Element => {
   return (
     <Show when={props.rows.length > 0}>
-      <h4 class="mt-3 text-[11px] tracking-wide text-text-muted uppercase">{props.heading}</h4>
+      <h4 class="tracking-wide mt-3 text-[11px] text-text-muted uppercase">{props.heading}</h4>
       <Index each={props.rows}>
         {(row) => {
           return (
             <label
-              class="block cursor-pointer rounded px-1 py-0.5"
+              class="rounded-sm py-0.5 block cursor-pointer px-1"
               data-active={row().active ? 'true' : 'false'}
             >
-              <span class="flex items-center gap-1.5">
+              <span class="gap-1.5 flex items-center">
                 <input
                   checked={row().checked}
                   onChange={() => {
@@ -55,8 +57,11 @@ export const CheckList = (props: CheckListProps): JSX.Element => {
                     return (
                       <span
                         class={cx(
-                          'shrink-0 rounded-full bg-unverified-surface px-1.5',
-                          'text-[10px] font-semibold whitespace-nowrap text-unverified',
+                          'px-1.5 shrink-0 rounded-full bg-unverified-surface',
+                          `
+                            font-semibold text-[10px] whitespace-nowrap
+                            text-unverified
+                          `,
                         )}
                       >
                         {badge()}
@@ -67,7 +72,10 @@ export const CheckList = (props: CheckListProps): JSX.Element => {
                 <Show when={row().meta}>
                   {(meta) => {
                     return (
-                      <span class="shrink-0 text-[10px] whitespace-nowrap text-text-muted">
+                      <span class="
+                        shrink-0 text-[10px] whitespace-nowrap text-text-muted
+                      "
+                      >
                         {meta()}
                       </span>
                     );
@@ -77,7 +85,7 @@ export const CheckList = (props: CheckListProps): JSX.Element => {
                   {(count) => {
                     return (
                       <span
-                        class="shrink-0 text-xs text-text-muted tabular-nums"
+                        class="text-xs shrink-0 text-text-muted tabular-nums"
                         title={countTitleFor(count())}
                       >
                         {count().value}
@@ -88,7 +96,7 @@ export const CheckList = (props: CheckListProps): JSX.Element => {
               </span>
               <Show when={row().note}>
                 {(note) => {
-                  return <span class="block pl-6 text-[10px] text-text-muted">{note()}</span>;
+                  return <span class="pl-6 block text-[10px] text-text-muted">{note()}</span>;
                 }}
               </Show>
             </label>

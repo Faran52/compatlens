@@ -1,28 +1,28 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Churning SPA - observer spike</title>
-<style>
+    <head>
+        <meta charset="utf-8">
+        <title>Churning SPA - observer spike</title>
+        <style>
   body { font: 13px system-ui; margin: 0; padding: 16px; background: #111319; color: #f2f4f8; }
   button { font: inherit; padding: 4px 10px; margin-right: 6px; }
   #log { white-space: pre; font-family: ui-monospace, monospace; font-size: 12px; }
   .card:has(img) { backdrop-filter: blur(4px); }
   .skeleton { content-visibility: auto; contain-intrinsic-size: 40px; }
   .row { anchor-name: --row; }
-</style>
-</head>
-<body>
-<nav>
-  <button data-route="/products">/products</button>
-  <button data-route="/checkout">/checkout</button>
-  <button data-route="/settings">/settings</button>
-</nav>
-<p>route: <b id="route">/products</b></p>
-<div id="app"></div>
-<div id="log"></div>
+        </style>
+    </head>
+    <body>
+        <nav>
+            <button data-route="/products">/products</button>
+            <button data-route="/checkout">/checkout</button>
+            <button data-route="/settings">/settings</button>
+        </nav>
+        <p>route: <b id="route">/products</b></p>
+        <div id="app"></div>
+        <div id="log"></div>
 
-<script>
+        <script>
 // A deliberately hostile SPA: pushState routing, loading skeletons that swap to real
 // content, and a list that churns continuously the way a live dashboard would.
 const app = document.getElementById('app');
@@ -70,6 +70,6 @@ window.__startChurn = (perTick, intervalMs) => {
   }, intervalMs);
 };
 window.__stopChurn = () => { clearInterval(churnTimer); churnTimer = null; };
-</script>
-</body>
+        </script>
+    </body>
 </html>

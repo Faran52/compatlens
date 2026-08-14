@@ -72,7 +72,7 @@ export interface DataVersion {
 
 export interface FeatureRegistryEntry extends DetectorDefinition {
   baseline: BaselineStatus;
-  baselineDate?: string;
+  baselineDate?: string | undefined;
   mdnUrl: string;
   support: Readonly<Partial<Record<BrowserId, string>>>;
   dataVersion: DataVersion;
@@ -154,7 +154,7 @@ export interface Suggestion {
   name: string;
   replacementSyntax: string;
   mdnUrl: string;
-  baselineDate?: string;
+  baselineDate?: string | undefined;
   location: SourceLocation;
 }
 

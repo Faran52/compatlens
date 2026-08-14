@@ -32,7 +32,11 @@ const luminance = (colour: string): number => {
     return scaled <= 0.03928 ? scaled / 12.92 : ((scaled + 0.055) / 1.055) ** 2.4;
   });
 
-  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  // Destructured with defaults: the three come from one `map` over a fixed-length match, which the index type
+  // cannot see.
+  const [red = 0, green = 0, blue = 0] = channels;
+
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
 };
 
 for (const scheme of ['light', 'dark'] as const) {

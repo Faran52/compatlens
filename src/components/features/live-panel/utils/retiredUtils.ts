@@ -17,7 +17,7 @@ export const retiredYearFor = (slot: BrowserSlotId, input: RetiredInput): string
 
   const runs = input.runs[input.bcdIdOf(slot)] ?? [];
   const version = input.target[slot];
-  const current = runs.length === 0 ? null : runs[runs.length - 1].engine;
+  const current = runs[runs.length - 1]?.engine ?? null;
   const engine = version === undefined ? current : engineAt(runs, version);
 
   return engine === null ? undefined : input.retired[engine];

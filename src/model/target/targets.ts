@@ -15,8 +15,9 @@ export const isAgeWindow = (value: string): value is AgeWindowPreset => {
   });
 };
 
-export const yearsOf = (preset: AgeWindowPreset): string => {
-  return preset.slice('age-'.length);
+// Generic over the year, so the caller gets back the same literal the preset carried rather than a bare string.
+export const yearsOf = <Y extends AgeWindowYears>(preset: `age-${Y}`): `${Y}` => {
+  return preset.slice('age-'.length) as `${Y}`;
 };
 
 export const isTargetPreset = (value: string | undefined): value is TargetPreset => {
@@ -36,5 +37,7 @@ export const resolveTargetPreset = (preset: TargetPreset): BrowserTarget => {
     return BASELINE_2022_TARGET;
   }
 
+  // No fallback, because the lookup cannot miss: the table is keyed by the same year union the preset carries, so
+  // the type says every key is present rather than leaving a branch nothing reaches.
   return ageWindowTargets[yearsOf(preset)];
 };

@@ -1,3 +1,5 @@
+import { runInThisContext } from 'node:vm';
+
 import type {
   ChromeDevToolsFacade,
   DevToolsInspectedWindow,
@@ -18,7 +20,8 @@ export interface ChromeFixtureInput {
   html?: string; // the rendered dom
   stylesheets?: readonly StylesheetFixture[];
   exception?: InspectedWindowException;
-  evalResult?: unknown;
+  // Whatever the inspected page handed back, which a guard refuses or narrows; the tests feed malformed ones.
+  evalResult?: boolean | object | string | null;
   resourceApi?: boolean; // false models Firefox, which implements no getResources
 }
 
@@ -110,4 +113,39 @@ export const chromeFixture = (input: ChromeFixtureInput = {}): ChromeFixture => 
       return listeners.size;
     },
   };
+};
+
+/**
+ * A facade that actually runs what the panel would send. The observer expressions are source text the inspected
+ * page executes, so a fake that only records the string proves nothing: an earlier version matched on the source and
+ * passed while the shadow walk skipped the added node itself.
+ */
+export const apiThatRunsTheExpression: ChromeDevToolsFacade = {
+  inspectedWindow: {
+    /**
+     * `node:vm`, not `new Function`, because the expression is an expression: `inspectedWindow.eval` hands the page a
+     * source text and answers its completion value, which is what `runInThisContext` does and what the old
+     * `new Function(\`return ${expression}\`)()` was approximating around Function taking a body rather than an
+     * expression. The globals it resolves against are this test's document and window.
+     */
+    eval: (expression, callback) => {
+      callback(runInThisContext(expression));
+    },
+    getResources: (callback) => {
+      callback([]);
+    },
+  },
+  network: {
+    getHAR: (callback) => {
+      callback({ entries: [] });
+    },
+    onNavigated: {
+      addListener: () => {
+        return undefined;
+      },
+      removeListener: () => {
+        return undefined;
+      },
+    },
+  },
 };

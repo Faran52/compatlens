@@ -23,7 +23,10 @@ interface TabsProps {
 
 export const Tabs = (props: TabsProps): JSX.Element => {
   return (
-    <div class="flex items-center gap-0.5 border-b border-hairline bg-surface px-2" role="tablist">
+    <div
+      class="gap-0.5 flex items-center border-b border-hairline bg-surface px-2"
+      role="tablist"
+    >
       <Index each={props.tabs}>
         {(tab) => {
           return (
@@ -34,7 +37,7 @@ export const Tabs = (props: TabsProps): JSX.Element => {
               class={cx(
                 'cursor-pointer border-b-2 px-3 py-2',
                 props.active === tab().id
-                  ? 'border-accent font-semibold text-text'
+                  ? 'font-semibold border-accent text-text'
                   : 'border-transparent text-text-muted',
               )}
               id={tab().tabId}
@@ -57,7 +60,7 @@ export const Tabs = (props: TabsProps): JSX.Element => {
               type="button"
             >
               {tab().label}
-              <span class="ml-1.5 opacity-75 tabular-nums">{tab().count}</span>
+              <span class="ml-1.5 tabular-nums opacity-75">{tab().count}</span>
             </button>
           );
         }}

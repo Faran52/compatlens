@@ -1,19 +1,15 @@
 {
   "compilerOptions": {
     "rootDir": ".",
-
-    /* Language and Environment */
     "target": "esnext",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
+    "useDefineForClassFields": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "useDefineForClassFields": true,
-
-    /* Modules */
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -22,45 +18,89 @@
     "moduleDetection": "force",
     "importHelpers": true,
     "verbatimModuleSyntax": true,
-
-    /* Emit */
     "noEmit": true,
     "incremental": true,
-
-    /* Type Checking */
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "erasableSyntaxOnly": true,
     "allowJs": true,
     "checkJs": false,
     "skipLibCheck": true,
-
-    /* Interop Constraints */
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-
-    /* Path Aliases */
-    "paths": {
-      "@compat-data": ["./src/lib/compat-data/index.ts"],
-      "@engine": ["./src/lib/engine/index.ts"],
-      "@extension": ["./src/extension/index.ts"],
-      "@mocks": ["./__mocks__/index.ts"],
-      "@model": ["./src/model/index.ts"],
-      "@components/features": ["./src/components/features/index.ts"],
-      "@components/ui": ["./src/components/ui/index.ts"],
-      "@utils": ["./src/utils/index.ts"],
-      "@workers": ["./src/workers/index.ts"]
-    },
     "types": [
       "node",
-      "vitest/globals"
+      "vite/client",
+      "vitest/globals",
+      "chrome"
     ],
+    "paths": {
+      "@components/*": [
+        "./src/components/*"
+      ],
+      "@ui/*": [
+        "./src/components/ui/*"
+      ],
+      "@features/*": [
+        "./src/components/features/*"
+      ],
+      "@lib/*": [
+        "./src/lib/*"
+      ],
+      "@utils/*": [
+        "./src/lib/utils/*"
+      ],
+      "@services/*": [
+        "./src/lib/services/*"
+      ],
+      "@model/*": [
+        "./src/lib/model/*"
+      ],
+      "@config/*": [
+        "./src/config/*"
+      ],
+      "@mocks/*": [
+        "./__mocks__/*"
+      ],
+      "@compat-data": [
+        "./src/lib/compat-data/index.ts"
+      ],
+      "@components/features": [
+        "./src/components/features/index.ts"
+      ],
+      "@components/ui": [
+        "./src/components/ui/index.ts"
+      ],
+      "@engine": [
+        "./src/lib/engine/index.ts"
+      ],
+      "@extension": [
+        "./src/extension/index.ts"
+      ],
+      "@mocks": [
+        "./__mocks__/index.ts"
+      ],
+      "@model": [
+        "./src/model/index.ts"
+      ],
+      "@utils": [
+        "./src/utils/index.ts"
+      ],
+      "@workers": [
+        "./src/workers/index.ts"
+      ]
+    }
   },
-
   "include": [
     "**/*.ts",
     "**/*.tsx",
     "**/*.mts"
   ],
-
   "exclude": [
     "node_modules",
     "dist",

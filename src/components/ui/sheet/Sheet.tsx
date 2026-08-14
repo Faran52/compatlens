@@ -4,9 +4,9 @@ import { cx } from '@utils';
 
 import {
   closeSheet,
-  isSheetBackdropClick,
   openerFor,
   openSheet,
+  wireSheetDismissal,
 } from './utils/sheetUtils';
 
 import type { ExitDirection } from '@utils';
@@ -29,7 +29,7 @@ interface SheetProps {
   title: string;
   closeLabel: string;
   id?: string;
-  opener?: HTMLElement; // where focus goes on close, when the caller holds a ref to it
+  opener?: HTMLElement | undefined; // where focus goes on close, when the caller holds a ref to it
   subtitle?: string;
   badges?: JSX.Element;
   onClose: () => void;
@@ -42,8 +42,11 @@ const SHEET_VARIANTS: Readonly<Record<SheetSide, SheetVariant>> = {
     modal: false,
     exit: 'down',
     sheet: cx(
-      'absolute inset-x-0 bottom-0 z-10 m-0 max-h-[60%] w-auto max-w-none p-0',
-      'border-x-0 border-b-0 border-t border-hairline bg-surface text-text shadow-[var(--shadow)]',
+      'inset-x-0 bottom-0 m-0 p-0 absolute z-10 max-h-[60%] w-auto max-w-none',
+      `
+        border-x-0 border-t border-b-0 border-hairline bg-surface text-text
+        shadow-(--shadow)
+      `,
       'motion-safe:animate-sheet',
     ),
     shell: 'flex max-h-full flex-col',
@@ -54,9 +57,16 @@ const SHEET_VARIANTS: Readonly<Record<SheetSide, SheetVariant>> = {
     modal: true,
     exit: 'left',
     sheet: cx(
-      'm-0 h-full max-h-full w-[min(320px,85vw)] max-w-none p-0',
-      'border-y-0 border-r border-l-0 border-hairline bg-transparent shadow-[var(--shadow)]',
-      'motion-safe:animate-filter-menu backdrop:bg-canvas/70 dark:backdrop:bg-canvas/80',
+      'm-0 p-0 h-full max-h-full w-[min(320px,85vw)] max-w-none',
+      `
+        border-y-0 border-r border-l-0 border-hairline bg-transparent
+        shadow-(--shadow)
+      `,
+      `
+        backdrop:bg-canvas/70
+        motion-safe:animate-filter-menu
+        dark:backdrop:bg-canvas/80
+      `,
     ),
     shell: 'flex h-full flex-col bg-surface text-text',
     header: 'flex items-center border-b border-hairline p-2',
@@ -84,6 +94,10 @@ export const Sheet = (props: SheetProps): JSX.Element => {
     // Read before the sheet takes focus, so closing can hand it back to whatever opened this.
     opener = openerFor(props.opener, document.activeElement);
     openSheet(sheet, closeButton, variant().modal);
+
+    wireSheetDismissal(sheet, () => {
+      void close();
+    });
   });
 
   return (
@@ -91,15 +105,6 @@ export const Sheet = (props: SheetProps): JSX.Element => {
       aria-label={props.title}
       class={variant().sheet}
       id={props.id}
-      onCancel={(event) => {
-        event.preventDefault();
-        void close();
-      }}
-      onClick={(event) => {
-        if (isSheetBackdropClick(event.target, event.currentTarget)) {
-          void close();
-        }
-      }}
       open={!variant().modal}
       ref={sheet}
     >
@@ -108,13 +113,16 @@ export const Sheet = (props: SheetProps): JSX.Element => {
           <h2 class="text-sm font-semibold">{props.title}</h2>
           <Show when={props.subtitle}>
             {(subtitle) => {
-              return <span class="font-mono text-xs text-text-muted">{subtitle()}</span>;
+              return <span class="text-xs font-mono text-text-muted">{subtitle()}</span>;
             }}
           </Show>
           {props.badges}
           <button
             aria-label={props.closeLabel}
-            class="ml-auto cursor-pointer rounded border border-hairline bg-surface-raised px-2"
+            class="
+              rounded-sm ml-auto cursor-pointer border border-hairline
+              bg-surface-raised px-2
+            "
             onClick={() => {
               void close();
             }}

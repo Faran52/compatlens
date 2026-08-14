@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Faran52/linteljs/main/schemas/lintel.config.v1.schema.json",
+  "schemaVersion": 1,
+  "target": "webextension",
+  "browser": "chrome",
+  "browsers": [
+    "chrome",
+    "firefox"
+  ],
+  "hostedFramework": "solid",
+  "surfaces": [
+    "devtools-panel"
+  ],
+  "testing": "vitest",
+  "packageManager": "pnpm",
+  "libraries": [
+    "tailwind"
+  ],
+  "store": false,
+  "typeSafety": "strict",
+  "agents": [
+    "claude-code",
+    "codex"
+  ],
+  "plugins": [
+    "ponytail",
+    "context7",
+    "frontend-design"
+  ],
+  "aliases": {
+    "@compat-data": "./src/lib/compat-data/index.ts",
+    "@components/features": "./src/components/features/index.ts",
+    "@components/ui": "./src/components/ui/index.ts",
+    "@engine": "./src/lib/engine/index.ts",
+    "@extension": "./src/extension/index.ts",
+    "@mocks": "./__mocks__/index.ts",
+    "@model": "./src/model/index.ts",
+    "@utils": "./src/utils/index.ts",
+    "@workers": "./src/workers/index.ts"
+  },
+  "ignores": [
+    "src/lib/compat-data/generatedRegistry.ts",
+    "e2e/fixtures/**"
+  ]
+}

@@ -34,10 +34,12 @@ npm-debug.log*
 # JetBrains
 .idea/
 
-# local assistant configuration
-CLAUDE.md
-AGENTS.md
-.claude/
+# Local assistant configuration only. CLAUDE.md, AGENTS.md and .claude/ are deliberately absent:
+# @linteljs/create writes them as part of the standard, so they belong to the repository and are
+# committed with it rather than being each checkout's own.
 .codex/
 .worktrees/
 docs/superpowers/
+
+# lintel
+coverage/

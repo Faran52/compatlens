@@ -4,7 +4,11 @@ import {
   it,
 } from 'vitest';
 
-import { blockedFindingFixture } from '@mocks';
+import {
+  at,
+  blockedFindingFixture,
+  first,
+} from '@mocks';
 
 import {
   countBySeverity,
@@ -50,7 +54,7 @@ describe('sectionsFor', () => {
   });
 
   it('sorts the rows inside each section', () => {
-    expect(sectionsFor(all, every, 'feature')[0].occurrences.map((item) => {
+    expect(first(sectionsFor(all, every, 'feature')).occurrences.map((item) => {
       return item.name;
     })).toEqual(['alpha', 'beta']);
   });
@@ -111,7 +115,7 @@ describe('severityCheckRowsFor', () => {
       },
     });
 
-    rows[1].onToggle();
+    at(rows, 1).onToggle();
 
     expect(toggled).toStrictEqual(['degrades']);
   });

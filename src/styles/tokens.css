@@ -1,8 +1,9 @@
 :root {
   /* Both, so an unset data-theme follows the OS and light-dark() below resolves against it. */
   color-scheme: light dark;
+
   --canvas: light-dark(#f6f7f9, #111319);
-  --surface: light-dark(#ffffff, #181b22);
+  --surface: light-dark(#fff, #181b22);
   --surface-raised: light-dark(#f1f3f6, #20242d);
   --surface-selected: light-dark(#e7edfb, #1d2740);
   --text: light-dark(#171a21, #f2f4f8);
@@ -21,16 +22,14 @@
 
   /* light-dark() takes a colour, never a length, so each theme paints the other's geometry away. */
   --shadow:
-    0 8px 28px light-dark(rgb(23 26 33 / 0.08), transparent),
-    0 10px 32px light-dark(transparent, rgb(0 0 0 / 0.28));
-
+    0 8px 28px light-dark(rgb(23 26 33 / 8%), transparent),
+    0 10px 32px light-dark(transparent, rgb(0 0 0 / 28%));
   --space-1: 6px;
   --space-2: 10px;
   --space-3: 14px;
   --space-5: 28px;
-
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: system-ui, -apple-system, "Segoe UI", roboto, helvetica, arial, sans-serif;
+  --font-mono: ui-monospace, sfmono-regular, "SF Mono", menlo, consolas, monospace;
   --text-size: 14px;
   --text-leading: 1.45;
 }

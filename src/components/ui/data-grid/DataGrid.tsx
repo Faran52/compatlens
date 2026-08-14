@@ -42,23 +42,23 @@ export const SORT_BY_LEAD = 'lead';
 
 export const DataGrid = <Row, Key extends string>(props: DataGridProps<Row, Key>): JSX.Element => {
   return (
-    <table class="w-full min-w-max border-separate border-spacing-0 text-xs">
+    <table class="border-spacing-0 text-xs w-full min-w-max border-separate">
       <thead>
         <Show when={props.groups.length > 0}>
           <tr>
-            <td class="sticky left-0 z-2 bg-canvas" />
+            <td class="left-0 sticky z-2 bg-canvas" />
             <For each={props.groups}>
               {(group) => {
                 return (
                   <th
                     class={cx(
-                      'bg-canvas px-1 pt-1 pb-0.5 text-center',
-                      'text-[10px] tracking-wide text-text-muted uppercase',
+                      'pb-0.5 bg-canvas px-1 pt-1 text-center',
+                      'tracking-wide text-[10px] text-text-muted uppercase',
                     )}
                     colspan={group.span}
                     data-group={group.key}
                   >
-                    <span class="block truncate border-b border-hairline pb-0.5">{group.label}</span>
+                    <span class="pb-0.5 block truncate border-b border-hairline">{group.label}</span>
                   </th>
                 );
               }}
@@ -66,9 +66,12 @@ export const DataGrid = <Row, Key extends string>(props: DataGridProps<Row, Key>
           </tr>
         </Show>
         <tr>
-          <th class="sticky top-0 left-0 z-3 bg-surface px-2 py-1 text-left">
+          <th class="top-0 left-0 sticky z-3 bg-surface px-2 py-1 text-left">
             <button
-              class="cursor-pointer text-[11px] tracking-wide text-text-muted uppercase"
+              class="
+                tracking-wide cursor-pointer text-[11px] text-text-muted
+                uppercase
+              "
               onClick={() => {
                 props.onSort(SORT_BY_LEAD);
               }}
@@ -82,8 +85,11 @@ export const DataGrid = <Row, Key extends string>(props: DataGridProps<Row, Key>
               return (
                 <th
                   class={cx(
-                    'sticky top-0 z-2 w-16 min-w-16 bg-surface px-1 py-1',
-                    'text-center font-semibold motion-safe:animate-reveal',
+                    'top-0 w-16 min-w-16 sticky z-2 bg-surface p-1',
+                    `
+                      font-semibold text-center
+                      motion-safe:animate-reveal
+                    `,
                   )}
                   data-column={column.key}
                   data-column-group={column.group}
@@ -97,7 +103,7 @@ export const DataGrid = <Row, Key extends string>(props: DataGridProps<Row, Key>
                   >
                     {column.label}
                   </button>
-                  <span class="block text-[10px] font-normal text-text-muted">{column.sublabel}</span>
+                  <span class="font-normal block text-[10px] text-text-muted">{column.sublabel}</span>
                 </th>
               );
             }}
@@ -106,8 +112,8 @@ export const DataGrid = <Row, Key extends string>(props: DataGridProps<Row, Key>
         <tr>
           <td
             class={cx(
-              'sticky left-0 z-2 bg-surface-raised px-2 py-1',
-              'text-[11px] font-semibold text-text-muted',
+              'left-0 sticky z-2 bg-surface-raised px-2 py-1',
+              'font-semibold text-[11px] text-text-muted',
             )}
           >
             {props.totalsLabel}
@@ -117,8 +123,8 @@ export const DataGrid = <Row, Key extends string>(props: DataGridProps<Row, Key>
               return (
                 <td
                   class={cx(
-                    'bg-surface-raised px-1 py-1 text-center',
-                    'text-[11px] font-semibold text-text-muted tabular-nums',
+                    'bg-surface-raised p-1 text-center',
+                    'font-semibold text-[11px] text-text-muted tabular-nums',
                   )}
                 >
                   {props.totalCell(column)}
@@ -135,7 +141,7 @@ export const DataGrid = <Row, Key extends string>(props: DataGridProps<Row, Key>
               <>
                 <tr>
                   <td
-                    class="bg-canvas px-2 pt-3 pb-1 font-semibold"
+                    class="font-semibold bg-canvas px-2 pt-3 pb-1"
                     colspan={props.columns.length + 1}
                     data-section={section.key}
                   >

@@ -1,40 +1,62 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>CompatLens smoke test page</title>
-    <!-- Loaded as a real stylesheet so DevTools records it in the HAR and CompatLens can read it.
-         Inline <style> is deliberately not used here: the point of the page is to exercise the
-         network-backed CSS path. -->
-    <link rel="stylesheet" href="./compat-page.css" />
-  </head>
-  <body>
-    <h1>CompatLens smoke test page</h1>
+    <head>
+        <meta charset="utf-8">
+        <title>CompatLens smoke test page</title>
+        <!-- Loaded as a real stylesheet so DevTools records it in the HAR and CompatLens can read it.
+            Inline <style> is deliberately not used here: the point of the page is to exercise the
+            network-backed CSS path. -->
+        <link rel="stylesheet" href="./compat-page.css">
+    </head>
+    <body>
+        <h1>CompatLens smoke test page</h1>
 
-    <button popovertarget="menu">Open menu</button>
-    <div id="menu" popover>Menu contents</div>
+        <button popovertarget="menu">Open menu</button>
+        <div id="menu" popover>Menu contents</div>
 
-    <dialog open>A dialog</dialog>
+        <dialog open>A dialog</dialog>
 
-    <details name="group"><summary>One</summary>First</details>
-    <details name="group"><summary>Two</summary>Second</details>
+        <details name="group">
+            <summary>One</summary>
+            First
+        </details>
+        <details name="group">
+            <summary>Two</summary>
+            Second
+        </details>
 
-    <div inert>Inert subtree</div>
+        <div inert>Inert subtree</div>
 
-    <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="" loading="lazy" fetchpriority="low" width="1" height="1" />
+        <img
+            src="data:image/gif;base64,R0lGODlhAQABAAAAACw="
+            alt=""
+            loading="lazy"
+            fetchpriority="low"
+            width="1"
+            height="1"
+        >
 
-    <!-- The dialog and inert subtree live inside the shadow tree on purpose: they are only
-         reachable if the collector serialises shadow roots back into the markup. -->
-    <div>
-      <template shadowrootmode="open">
-        <span>Shadow content</span>
-        <dialog>A dialog inside a shadow root</dialog>
-        <div inert>Inert inside a shadow root</div>
-      </template>
-    </div>
+        <!-- The dialog and inert subtree live inside the shadow tree on purpose: they are only
+            reachable if the collector serialises shadow roots back into the markup. -->
+        <div>
+            <template shadowrootmode="open">
+                <span>Shadow content</span>
+                <dialog>A dialog inside a shadow root</dialog>
+                <div inert>Inert inside a shadow root</div>
+            </template>
+        </div>
 
-    <div class="card"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="" width="1" height="1" /></div>
-    <div class="grid"><div class="grid__cell">Cell</div></div>
-    <p class="balanced">A heading that would be balanced across lines when supported.</p>
-  </body>
+        <div class="card">
+            <img
+                src="data:image/gif;base64,R0lGODlhAQABAAAAACw="
+                alt=""
+                width="1"
+                height="1"
+            >
+        </div>
+        <div class="grid">
+            <div class="grid__cell">Cell</div>
+        </div>
+        <p class="balanced">A heading that would be balanced across lines when supported.</p>
+    </body>
 </html>

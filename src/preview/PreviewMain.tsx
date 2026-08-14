@@ -23,7 +23,7 @@ import type { PanelTab } from '@components/features';
 import type { BrowserSlotId, Occurrence } from '@engine';
 
 import '../styles/tokens.css';
-import '../styles/tailwind.css';
+import '../style.css';
 import '../styles/global.css';
 
 const ROUTE = 'https://shop.example.test/products';

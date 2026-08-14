@@ -23,7 +23,9 @@ export const ThemeMenu = (props: ThemeMenuProps): JSX.Element => {
   return (
     <select
       aria-label="Theme"
-      class="rounded border border-hairline bg-surface-raised px-2 py-1 text-text"
+      class="
+        rounded-sm border border-hairline bg-surface-raised px-2 py-1 text-text
+      "
       onChange={(event) => {
         if (isThemeMode(event.currentTarget.value)) {
           props.onChange(event.currentTarget.value);

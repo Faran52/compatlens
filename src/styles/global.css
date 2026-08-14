@@ -7,11 +7,11 @@ body,
 
 body {
   overflow: hidden;
-  background: var(--canvas);
-  color: var(--text);
   font-family: var(--font-sans);
   font-size: var(--text-size);
   line-height: var(--text-leading);
+  color: var(--text);
+  background: var(--canvas);
 }
 
 :where(a) {
@@ -38,9 +38,9 @@ samp {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

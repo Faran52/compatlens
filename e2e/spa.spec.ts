@@ -64,7 +64,8 @@ const install = async (page: Page): Promise<void> => {
 };
 
 const drain = async (page: Page): Promise<Batch> => {
-  const result: unknown = await page.evaluate(OBSERVER_DRAIN_EXPRESSION);
+  // `page.evaluate` already answers `unknown` for a string expression; the guard below is what narrows it.
+  const result = await page.evaluate(OBSERVER_DRAIN_EXPRESSION);
 
   if (!isBatch(result)) {
     throw new Error('the drain returned no batch');
@@ -76,7 +77,9 @@ const drain = async (page: Page): Promise<Batch> => {
 const goTo = async (page: Page, route: string): Promise<void> => {
   await page.getByRole('button', { name: route }).click();
   await expect(page.locator('#route')).toHaveText(route);
-  await page.getByRole('heading', { name: HEADINGS[route] }).waitFor({ state: 'visible' });
+  // `?? route` rather than passing a possibly-absent name: a route with no heading recorded should fail on the
+  // locator, not by asking Playwright to match anything.
+  await page.getByRole('heading', { name: HEADINGS[route] ?? route }).waitFor({ state: 'visible' });
 };
 
 test.describe('watching a single-page app', () => {

@@ -60,8 +60,15 @@ export const NarrowFilterMenu = (props: NarrowFilterMenuProps): JSX.Element => {
         aria-expanded={expanded()}
         aria-label="Open filters"
         class={cx(
-          'cursor-pointer rounded border border-hairline bg-surface-raised px-2',
-          'hover:border-accent focus-visible:border-accent min-[720px]:hidden',
+          `
+            rounded-sm cursor-pointer border border-hairline bg-surface-raised
+            px-2
+          `,
+          `
+            hover:border-accent
+            focus-visible:border-accent
+            min-[720px]:hidden
+          `,
         )}
         disabled={props.busy}
         onClick={menu.open}

@@ -11,6 +11,8 @@ import {
   vi,
 } from 'vitest';
 
+import { first } from '@mocks';
+
 import { FilterRail } from './FilterRail';
 
 import type { BrowserSlotId } from '@engine';
@@ -89,7 +91,7 @@ describe('FilterRail', () => {
   it('asks to toggle the browser that was clicked', () => {
     const onToggle = renderRail({}, vi.fn());
 
-    fireEvent.click(screen.getAllByRole('checkbox')[0]);
+    fireEvent.click(first(screen.getAllByRole('checkbox')));
 
     expect(onToggle).toHaveBeenCalledWith('chrome');
   });

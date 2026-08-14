@@ -10,6 +10,7 @@ import {
   isSheetBackdropClick,
   openerFor,
   openSheet,
+  wireSheetDismissal,
 } from './sheetUtils';
 
 import type { ExitAnimation, ExitAnimationResult } from '@utils';
@@ -130,5 +131,69 @@ describe('isSheetBackdropClick', () => {
     dialog.append(content);
 
     expect(isSheetBackdropClick(content, dialog)).toBe(false);
+  });
+});
+
+describe('wireSheetDismissal', () => {
+  it('closes on Escape, which is the only route a non-modal sheet has', () => {
+    const dialog = document.createElement('dialog');
+    let closed = 0;
+
+    wireSheetDismissal(dialog, () => {
+      closed += 1;
+    });
+    dialog.dispatchEvent(new KeyboardEvent('keydown', { cancelable: true, key: 'Escape' }));
+
+    expect(closed).toBe(1);
+  });
+
+  it('ignores every other key', () => {
+    const dialog = document.createElement('dialog');
+    let closed = 0;
+
+    wireSheetDismissal(dialog, () => {
+      closed += 1;
+    });
+    dialog.dispatchEvent(new KeyboardEvent('keydown', { cancelable: true, key: 'Enter' }));
+
+    expect(closed).toBe(0);
+  });
+
+  it('closes on a backdrop click and not on one from the content inside', () => {
+    const dialog = document.createElement('dialog');
+    const content = document.createElement('div');
+    let closed = 0;
+
+    dialog.append(content);
+    wireSheetDismissal(dialog, () => {
+      closed += 1;
+    });
+
+    content.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(closed).toBe(0);
+
+    dialog.dispatchEvent(new MouseEvent('click'));
+    expect(closed).toBe(1);
+  });
+
+  // `cancel` is what a modal dialog fires for Escape; preventing the default keeps closing on one path.
+  it('closes on the dialog cancel event', () => {
+    const dialog = document.createElement('dialog');
+    let closed = 0;
+
+    wireSheetDismissal(dialog, () => {
+      closed += 1;
+    });
+    dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
+
+    expect(closed).toBe(1);
+  });
+
+  it('wires nothing before the sheet is rendered', () => {
+    expect(() => {
+      wireSheetDismissal(undefined, () => {
+        throw new Error('should not be called');
+      });
+    }).not.toThrow();
   });
 });

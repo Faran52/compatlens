@@ -16,16 +16,18 @@ export const FeatureCell = (props: FeatureCellProps): JSX.Element => {
   return (
     <td
       class={cx(
-        'sticky left-0 z-1 min-w-[13rem] border-l-2 py-1 pr-2 pl-1.5 text-left',
+        'left-0 min-w-52 pl-1.5 sticky z-1 border-l-2 py-1 pr-2 text-left',
         // The sticky cell paints its own background, so it has to opt into the row's selection too.
-        props.selected ? 'border-accent bg-surface-selected' : 'border-transparent bg-canvas',
+        props.selected
+          ? 'border-accent bg-surface-selected'
+          : 'border-transparent bg-canvas',
       )}
       data-selected={props.selected ? 'true' : 'false'}
     >
       <div class="flex flex-wrap items-center gap-2">
         <button
           // No handler: the row above owns the click, and this is what a keyboard can reach.
-          class="cursor-pointer text-left font-semibold"
+          class="font-semibold cursor-pointer text-left"
           type="button"
         >
           {props.occurrence.name}
@@ -33,7 +35,7 @@ export const FeatureCell = (props: FeatureCellProps): JSX.Element => {
         <SeverityChip risk={props.occurrence.risk} verified={props.occurrence.verified} />
       </div>
       <div class="mt-0.5 flex flex-wrap items-center gap-2">
-        <code class="rounded bg-surface-raised px-1 font-mono text-xs">
+        <code class="rounded-sm text-xs bg-surface-raised px-1 font-mono">
           {props.occurrence.syntax}
         </code>
         <span

@@ -21,11 +21,15 @@ const LEGEND_ENTRIES: readonly LegendEntry[] = [
 
 export const CellLegend = (): JSX.Element => {
   return (
-    <dl class="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-hairline px-2 py-1.5 text-[11px]">
+    <dl class="
+      py-1.5 flex flex-wrap items-center gap-x-5 gap-y-1 border-t
+      border-hairline px-2 text-[11px]
+    "
+    >
       <For each={LEGEND_ENTRIES}>
         {(entry) => {
           return (
-            <div class="flex items-center gap-1.5" data-legend={entry.state}>
+            <div class="gap-1.5 flex items-center" data-legend={entry.state}>
               <dt
                 class={cx(CELL_PILL, 'text-center tabular-nums', CELL_CLASSES[entry.state])}
                 data-state={entry.state}

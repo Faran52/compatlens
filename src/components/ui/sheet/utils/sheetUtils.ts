@@ -51,3 +51,30 @@ export const closeSheet = async (
 export const isSheetBackdropClick = (target: EventTarget | null, dialog: EventTarget): boolean => {
   return target === dialog;
 };
+
+/**
+ * The dialog's own platform behaviour, wired to the element rather than through JSX props. Escape is handled here
+ * explicitly because `cancel` fires only for a modal dialog, so a non-modal sheet had no keyboard dismissal at all.
+ *
+ * The real `HTMLDialogElement`, unlike the narrow structural types above: this registers listeners, so there is no
+ * DOM-free view of it that still says what the three events carry.
+ */
+export const wireSheetDismissal = (dialog: HTMLDialogElement | undefined, close: () => void): void => {
+  dialog?.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    close();
+  });
+
+  dialog?.addEventListener('click', (event) => {
+    if (isSheetBackdropClick(event.target, dialog)) {
+      close();
+    }
+  });
+
+  dialog?.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      close();
+    }
+  });
+};

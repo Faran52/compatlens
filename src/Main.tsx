@@ -16,7 +16,7 @@ import { createAnalysisClient } from '@workers';
 import type { ChromeDevToolsFacade } from '@extension';
 
 import './styles/tokens.css';
-import './styles/tailwind.css';
+import './style.css';
 import './styles/global.css';
 
 interface PanelChromeGlobal {

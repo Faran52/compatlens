@@ -1,7 +1,11 @@
 import type { SourceLocation } from '../types';
 
 const withoutQuery = (url: string): string => {
-  return url.split(/[?#]/)[0];
+  // `search` and `slice`, not `split(...)[0]`: an index read is `| undefined` under `noUncheckedIndexedAccess` and
+  // its fallback is a branch nothing reaches, while a `.*$` replace backtracks. Both arms here are real URLs.
+  const cut = url.search(/[?#]/);
+
+  return cut === -1 ? url : url.slice(0, cut);
 };
 
 // Stripped once at the engine boundary so no downstream surface can leak a session token.

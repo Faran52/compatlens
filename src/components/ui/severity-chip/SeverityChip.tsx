@@ -16,7 +16,7 @@ export const SeverityChip = (props: SeverityChipProps): JSX.Element => {
     <span class="inline-flex items-center gap-1">
       <span
         class={cx(
-          'rounded-full px-2 text-xs font-semibold',
+          'text-xs font-semibold rounded-full px-2',
           props.risk === 'breaks'
             ? 'bg-breaks-surface text-breaks'
             : 'bg-degrades-surface text-degrades',
@@ -29,7 +29,10 @@ export const SeverityChip = (props: SeverityChipProps): JSX.Element => {
         ? null
         : (
             <span
-              class="rounded-full bg-unverified-surface px-2 text-xs font-semibold text-unverified"
+              class="
+                text-xs font-semibold rounded-full bg-unverified-surface px-2
+                text-unverified
+              "
               data-unverified="true"
               title="Support is prefixed, flagged or partial, so no plain version exists."
             >
