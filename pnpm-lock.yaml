@@ -4,10 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  '@linteljs/eslint-config': file:/private/tmp/claude-502/-Users-faran-ali-Projects-lintel/dd0cc5a1-6938-4687-848f-2217b72da655/scratchpad/link/linteljs-eslint-config-1.4.4.tgz
-  '@linteljs/eslint-plugin': file:/private/tmp/claude-502/-Users-faran-ali-Projects-lintel/dd0cc5a1-6938-4687-848f-2217b72da655/scratchpad/link/linteljs-eslint-plugin-1.4.4.tgz
-
 importers:
 
   .:
@@ -47,8 +43,8 @@ importers:
         specifier: ^0.64.0
         version: 0.64.0
       '@linteljs/eslint-config':
-        specifier: file:/private/tmp/claude-502/-Users-faran-ali-Projects-lintel/dd0cc5a1-6938-4687-848f-2217b72da655/scratchpad/link/linteljs-eslint-config-1.4.4.tgz
-        version: file:../../../../private/tmp/claude-502/-Users-faran-ali-Projects-lintel/dd0cc5a1-6938-4687-848f-2217b72da655/scratchpad/link/linteljs-eslint-config-1.4.4.tgz(81cde20fc3485e4e0250eafa672588bf)
+        specifier: ^1.4.5
+        version: 1.4.5(81cde20fc3485e4e0250eafa672588bf)
       '@mdn/browser-compat-data':
         specifier: 8.0.9
         version: 8.0.9
@@ -711,9 +707,8 @@ packages:
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
 
-  '@linteljs/eslint-config@file:../../../../private/tmp/claude-502/-Users-faran-ali-Projects-lintel/dd0cc5a1-6938-4687-848f-2217b72da655/scratchpad/link/linteljs-eslint-config-1.4.4.tgz':
-    resolution: {integrity: sha512-YuFSeE48Gfzps2VncMIB/+tLPji3Ygnjgq00AGhuHjPUpWK+AF+ooGMc0yPAi16UnXqkzEtH3Wr+6c9vgaOLVQ==, tarball: file:../../../../private/tmp/claude-502/-Users-faran-ali-Projects-lintel/dd0cc5a1-6938-4687-848f-2217b72da655/scratchpad/link/linteljs-eslint-config-1.4.4.tgz}
-    version: 1.4.4
+  '@linteljs/eslint-config@1.4.5':
+    resolution: {integrity: sha512-oE4GJM0VtfB0VZ+G4bg606glIi4FMRuQKekoBEmoqZugGO958YSV7XF89rsEUVJcDciZc0X/yaSqIzilUa/IFw==}
     engines: {node: '>=18.18.0'}
     peerDependencies:
       '@eslint-react/eslint-plugin': '>=5'
@@ -773,9 +768,8 @@ packages:
       vue-eslint-parser:
         optional: true
 
-  '@linteljs/eslint-plugin@file:../../../../private/tmp/claude-502/-Users-faran-ali-Projects-lintel/dd0cc5a1-6938-4687-848f-2217b72da655/scratchpad/link/linteljs-eslint-plugin-1.4.4.tgz':
-    resolution: {integrity: sha512-xGwRHVIUrshWLRjdCT9ITLTEaowqDYDJvqv+6jdDbxnrzfAvpAM3k4u3MvSW/2z+vpWJBC0Kjv4UkP/HjFWBYg==, tarball: file:../../../../private/tmp/claude-502/-Users-faran-ali-Projects-lintel/dd0cc5a1-6938-4687-848f-2217b72da655/scratchpad/link/linteljs-eslint-plugin-1.4.4.tgz}
-    version: 1.4.4
+  '@linteljs/eslint-plugin@1.4.5':
+    resolution: {integrity: sha512-RPrq7gUObctHydrkEcmJmVZg6pkca7ujzZasjmdullWu8LXLXz+SA8X/gZjptvR9lsOqaM577sm7Zs1/hkFcmw==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       eslint: '>=5.0.0'
@@ -4749,9 +4743,9 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@linteljs/eslint-config@file:../../../../private/tmp/claude-502/-Users-faran-ali-Projects-lintel/dd0cc5a1-6938-4687-848f-2217b72da655/scratchpad/link/linteljs-eslint-config-1.4.4.tgz(81cde20fc3485e4e0250eafa672588bf)':
+  '@linteljs/eslint-config@1.4.5(81cde20fc3485e4e0250eafa672588bf)':
     dependencies:
-      '@linteljs/eslint-plugin': file:../../../../private/tmp/claude-502/-Users-faran-ali-Projects-lintel/dd0cc5a1-6938-4687-848f-2217b72da655/scratchpad/link/linteljs-eslint-plugin-1.4.4.tgz(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))
+      '@linteljs/eslint-plugin': 1.4.5(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))
       '@stylistic/eslint-plugin': 5.10.0(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))
       eslint: 10.8.1(jiti@2.7.0)(supports-color@10.2.2)
       eslint-import-resolver-typescript: 4.4.5(eslint-plugin-import-x@4.17.1(@typescript-eslint/utils@8.67.0(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3))(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2))(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)
@@ -4776,7 +4770,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@linteljs/eslint-plugin@file:../../../../private/tmp/claude-502/-Users-faran-ali-Projects-lintel/dd0cc5a1-6938-4687-848f-2217b72da655/scratchpad/link/linteljs-eslint-plugin-1.4.4.tgz(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))':
+  '@linteljs/eslint-plugin@1.4.5(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))':
     dependencies:
       eslint: 10.8.1(jiti@2.7.0)(supports-color@10.2.2)
 

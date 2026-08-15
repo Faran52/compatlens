@@ -46,7 +46,7 @@
     "solid-js": "^1.9.14"
   },
   "devDependencies": {
-    "@linteljs/eslint-config": "^1.4.4",
+    "@linteljs/eslint-config": "^1.4.5",
     "@mdn/browser-compat-data": "8.0.9",
     "@playwright/test": "1.62.1",
     "@solidjs/testing-library": "^0.8.10",
