@@ -24,7 +24,7 @@ test.describe('CompatLens panel', () => {
     const trigger = page.getByRole('button', { name: 'Open filters' });
 
     await expect(trigger).toBeVisible();
-    await expect(page.getByRole('separator', { name: 'Resize the browser list' })).toBeHidden();
+    await expect(page.getByRole('slider', { name: 'Resize the browser list' })).toBeHidden();
     await trigger.click();
 
     const dialog = page.getByRole('dialog', { name: 'Filters' });
@@ -80,7 +80,7 @@ test.describe('CompatLens panel', () => {
     await expect(dialog).toHaveAttribute('open');
     await page.setViewportSize({ width: 720, height: 760 });
     await expect(dialog).toBeHidden();
-    await expect(page.getByRole('separator', { name: 'Resize the browser list' })).toBeFocused();
+    await expect(page.getByRole('slider', { name: 'Resize the browser list' })).toBeFocused();
 
     await page.setViewportSize({ width: 360, height: 760 });
     await page.getByRole('button', { name: 'Open filters' }).click();
@@ -93,7 +93,7 @@ test.describe('CompatLens panel', () => {
     await page.goto(PREVIEW);
 
     await expect(page.getByRole('button', { name: 'Open filters' })).toBeHidden();
-    await expect(page.getByRole('separator', { name: 'Resize the browser list' })).toBeVisible();
+    await expect(page.getByRole('slider', { name: 'Resize the browser list' })).toBeVisible();
   });
 
   test('gives every checked browser its own column', async ({ page }) => {
@@ -109,7 +109,7 @@ test.describe('CompatLens panel', () => {
     await page.goto(PREVIEW);
 
     const rail = page.getByRole('heading', { name: 'Browsers' }).locator('../..');
-    const handle = page.getByRole('separator', { name: 'Resize the browser list' });
+    const handle = page.getByRole('slider', { name: 'Resize the browser list' });
     const before = await rail.boundingBox();
 
     await handle.hover();
@@ -126,7 +126,7 @@ test.describe('CompatLens panel', () => {
     const rail = page.getByRole('heading', { name: 'Browsers' }).locator('../..');
     const before = await rail.boundingBox();
 
-    await page.getByRole('separator', { name: 'Resize the browser list' }).focus();
+    await page.getByRole('slider', { name: 'Resize the browser list' }).focus();
     await page.keyboard.press('ArrowRight');
 
     expect((await rail.boundingBox())?.width).toBeGreaterThan(before?.width ?? 0);

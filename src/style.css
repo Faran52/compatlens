@@ -1,8 +1,8 @@
 /* Restrict class scanning so catalog and fixture strings never emit styles. */
 @import url("tailwindcss") source(none);
 
-@source "../components";
-@source not "../components/**/*.test.{ts,tsx}";
+@source "./components";
+@source not "./components/**/*.test.{ts,tsx}";
 
 /* Dark means an explicit data-theme, or the OS preference while none is set: the tokens' own pair. */
 @custom-variant dark {
