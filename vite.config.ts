@@ -1,5 +1,18 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import solid from 'vite-plugin-solid';
+
+/**
+ * Vite hardcodes crossorigin on every built <script type=module> and <link rel=stylesheet>, with
+ * no config to turn it off. moz-extension:// resources carry no CORS headers, so Firefox drops
+ * the crossorigin-mode stylesheet fetch silently: dist-firefox is a straight copy of dist (see
+ * scripts/packageExtension.js), so this is the one place to strip it for both targets.
+ */
+const stripCrossorigin: Plugin = {
+  name: 'strip-crossorigin',
+  transformIndexHtml: (html) => {
+    return html.replace(/ crossorigin(="[^"]*")?/g, '');
+  },
+};
 
 // Chrome resolves devtools_page and the panel page against the extension root, so both HTML
 // entries stay flat and asset names carry no content hash: a reviewer diffs the built output.
@@ -9,6 +22,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       solid(),
+      stripCrossorigin,
     ],
     resolve: { tsconfigPaths: true },
     // The worker is emitted by its own rollup pass, which hashes unless it is told the same rule.

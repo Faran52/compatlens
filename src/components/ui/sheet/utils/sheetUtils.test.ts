@@ -57,7 +57,7 @@ describe('openSheet', () => {
     openSheet(dialog, closeButton, true);
 
     expect(dialog.showModal).toHaveBeenCalledTimes(1);
-    expect(closeButton.focus).toHaveBeenCalledTimes(1);
+    expect(closeButton.focus).toHaveBeenCalledWith({ preventScroll: true });
   });
 
   it('moves focus into a plain sheet too, so opening one is announced', () => {
@@ -66,7 +66,7 @@ describe('openSheet', () => {
     openSheet(dialog, closeButton, false);
 
     expect(dialog.showModal).not.toHaveBeenCalled();
-    expect(closeButton.focus).toHaveBeenCalledTimes(1);
+    expect(closeButton.focus).toHaveBeenCalledWith({ preventScroll: true });
   });
 
   it('opens nothing before the sheet is rendered', () => {
