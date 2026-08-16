@@ -43,8 +43,8 @@ importers:
         specifier: ^0.64.0
         version: 0.64.0
       '@linteljs/eslint-config':
-        specifier: ^1.4.5
-        version: 1.4.5(81cde20fc3485e4e0250eafa672588bf)
+        specifier: ^1.4.6
+        version: 1.4.6(81cde20fc3485e4e0250eafa672588bf)
       '@mdn/browser-compat-data':
         specifier: 8.0.9
         version: 8.0.9
@@ -707,8 +707,8 @@ packages:
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
 
-  '@linteljs/eslint-config@1.4.5':
-    resolution: {integrity: sha512-oE4GJM0VtfB0VZ+G4bg606glIi4FMRuQKekoBEmoqZugGO958YSV7XF89rsEUVJcDciZc0X/yaSqIzilUa/IFw==}
+  '@linteljs/eslint-config@1.4.6':
+    resolution: {integrity: sha512-k4EcUcLUN5MKc56CM+IUSYmuMW0U9o8d59dXr5BxlwPHCofv0BOaLlYJWlDY5hFYnlQ9nCsgIXapLYP1jqJrjQ==}
     engines: {node: '>=18.18.0'}
     peerDependencies:
       '@eslint-react/eslint-plugin': '>=5'
@@ -768,8 +768,8 @@ packages:
       vue-eslint-parser:
         optional: true
 
-  '@linteljs/eslint-plugin@1.4.5':
-    resolution: {integrity: sha512-RPrq7gUObctHydrkEcmJmVZg6pkca7ujzZasjmdullWu8LXLXz+SA8X/gZjptvR9lsOqaM577sm7Zs1/hkFcmw==}
+  '@linteljs/eslint-plugin@1.4.6':
+    resolution: {integrity: sha512-EDZPmzJHzqhpi8abP6c6fMmZpYlpdIstDCw9L5bQ7nh38eHKEZgz1oGEwDhBcgQGofGA7QXr+tI35C37zX6I9g==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
       eslint: '>=5.0.0'
@@ -4743,9 +4743,9 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@linteljs/eslint-config@1.4.5(81cde20fc3485e4e0250eafa672588bf)':
+  '@linteljs/eslint-config@1.4.6(81cde20fc3485e4e0250eafa672588bf)':
     dependencies:
-      '@linteljs/eslint-plugin': 1.4.5(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))
+      '@linteljs/eslint-plugin': 1.4.6(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))
       '@stylistic/eslint-plugin': 5.10.0(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))
       eslint: 10.8.1(jiti@2.7.0)(supports-color@10.2.2)
       eslint-import-resolver-typescript: 4.4.5(eslint-plugin-import-x@4.17.1(@typescript-eslint/utils@8.67.0(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3))(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2))(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)
@@ -4770,7 +4770,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@linteljs/eslint-plugin@1.4.5(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))':
+  '@linteljs/eslint-plugin@1.4.6(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))':
     dependencies:
       eslint: 10.8.1(jiti@2.7.0)(supports-color@10.2.2)
 

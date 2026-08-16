@@ -46,14 +46,4 @@ const config = await defineConfig({
   },
 });
 
-// wireSheetDismissal only ever hands its callback to addEventListener, one call removed from the
-// component; the rule can't see through that indirection, so it reads as reactivity with no
-// tracked scope around it.
-config.push({
-  files: ['src/components/ui/sheet/**/*.tsx'],
-  rules: {
-    'solid/reactivity': ['warn', { customReactiveFunctions: ['wireSheetDismissal'] }],
-  },
-});
-
 export default config;
