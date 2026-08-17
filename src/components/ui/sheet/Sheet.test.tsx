@@ -80,6 +80,24 @@ describe('Sheet', () => {
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close' }));
   });
 
+  it('closes a non-modal sheet on Escape, which has no cancel event of its own', async () => {
+    const onClose = renderBottomSheet(vi.fn());
+
+    fireEvent.keyDown(screen.getByRole('dialog', { name: 'Container queries' }), { key: 'Escape' });
+
+    await vi.waitFor(() => {
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('ignores every other key', () => {
+    const onClose = renderBottomSheet(vi.fn());
+
+    fireEvent.keyDown(screen.getByRole('dialog', { name: 'Container queries' }), { key: 'Enter' });
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('names its own close control so two open sheets never share one', () => {
     renderLeftSheet();
 

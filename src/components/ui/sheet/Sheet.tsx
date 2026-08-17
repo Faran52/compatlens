@@ -4,9 +4,9 @@ import { cx } from '@utils';
 
 import {
   closeSheet,
+  isSheetBackdropClick,
   openerFor,
   openSheet,
-  wireSheetDismissal,
 } from './utils/sheetUtils';
 
 import type { ExitDirection } from '@utils';
@@ -90,13 +90,30 @@ export const Sheet = (props: SheetProps): JSX.Element => {
     props.onClose();
   };
 
+  // The dialog's own platform behaviour, wired to the element directly rather than through a stored callback, so
+  // each listener is what it runs in: an event handler. Escape is handled explicitly because `cancel` fires only
+  // for a modal dialog, so a non-modal sheet would otherwise have no keyboard dismissal at all.
   onMount(() => {
     // Read before the sheet takes focus, so closing can hand it back to whatever opened this.
     opener = openerFor(props.opener, document.activeElement);
     openSheet(sheet, closeButton, variant().modal);
 
-    wireSheetDismissal(sheet, () => {
+    sheet?.addEventListener('cancel', (event) => {
+      event.preventDefault();
       void close();
+    });
+
+    sheet?.addEventListener('click', (event) => {
+      if (isSheetBackdropClick(event.target, sheet)) {
+        void close();
+      }
+    });
+
+    sheet?.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        void close();
+      }
     });
   });
 
